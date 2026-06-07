@@ -1,0 +1,49 @@
+{
+  "id": "expedia-openclaw",
+  "name": "Expedia Travel",
+  "description": "Live hotel, resort, vacation rental, and flight search via Expedia",
+  "skills": ["./skills"],
+  "contracts": {
+    "tools": [
+      "search_stays",
+      "search_flights",
+      "eg_travel_signup",
+      "eg_travel_verify",
+      "eg_tenant_status"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "adapter_url": {
+        "type": "string",
+        "description": "EG Travel Adapter endpoint URL.",
+        "default": "https://www.expedia.com/product/expedia-in-openclaw"
+      },
+      "default_pos_country": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$",
+        "description": "ISO 3166-1 alpha-2 country code for point-of-sale pricing.",
+        "default": "US"
+      },
+      "default_currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "description": "ISO 4217 currency code override (omit to use adapter default)."
+      },
+      "request_timeout_ms": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 60000,
+        "description": "HTTP timeout in milliseconds (adapter upstream calls may take 5-10s).",
+        "default": 12000
+      },
+      "synthetic_mode": {
+        "type": "boolean",
+        "description": "When true, sends X-Adapter-Mode: synthetic header for deterministic test data. Set to false for live upstream results.",
+        "default": false
+      }
+    }
+  }
+}
