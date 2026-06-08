@@ -14,7 +14,6 @@ EXCLUDES:
 DISABLE_LINTERS:
   - REPOSITORY_GRYPE # Security vulnerabilities in dependencies
   - REPOSITORY_GITLEAKS # False positives in tests/cache
-  - COPYPASTE_JSCPD # Code duplication checks
   - SPELL_CSPELL # Spelling checks
   - SPELL_LYCHEE # Link checking
   - MARKDOWN_MARKDOWN_LINK_CHECK # Link checking
