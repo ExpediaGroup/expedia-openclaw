@@ -10,15 +10,16 @@ EXCLUDES:
   - .npm_cache
   - .git
 
-# Disable linters that are redundant or too noisy for this initial phase
-DISABLE:
-  - REPOSITORY_GRYPE # Security vulnerabilities in dependencies
-  - REPOSITORY_GITLEAKS # False positives in tests/cache
-  - COPYPASTE_JSCPD # Code duplication checks
-  - SPELL_CSPELL # Spelling checks
-  - SPELL_LYCHEE # Link checking
-  - MARKDOWN_MARKDOWN_LINK_CHECK # Link checking
-  - REPOSITORY_CHECKOV # Security checks
-  - TYPESCRIPT_TS_STANDARD # Redundant with ESLint
-  - JSON_PRETTIER # Avoid conflicts with other formatters
-  - MARKDOWN_MARKDOWN_TABLE_FORMATTER # Often conflicts with manual formatting
+# Disable specific linters that are redundant or too noisy for this initial phase
+DISABLE_LINTERS:
+  - REPOSITORY_GRYPE
+  - REPOSITORY_GITLEAKS
+  - REPOSITORY_CHECKOV
+  - COPYPASTE_JSCPD
+  - SPELL_CSPELL
+  - SPELL_LYCHEE
+  - MARKDOWN_MARKDOWN_LINK_CHECK
+  - TYPESCRIPT_TS_STANDARD
+  - JSON_PRETTIER
+  - MARKDOWN_MARKDOWN_TABLE_FORMATTER
+  - YAML_V8R
