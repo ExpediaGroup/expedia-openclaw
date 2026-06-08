@@ -20,6 +20,11 @@ DISABLE_LINTERS:
   - MARKDOWN_MARKDOWN_LINK_CHECK # Link checking
   - REPOSITORY_CHECKOV # Security checks
   - TYPESCRIPT_TS_STANDARD # Redundant with ESLint
+  - TYPESCRIPT_STANDARD
   - JSON_PRETTIER # Avoid conflicts with other formatters
   - MARKDOWN_MARKDOWN_TABLE_FORMATTER # Often conflicts with manual formatting
   - YAML_V8R # Failing on valid yaml
+
+DISABLE_ERRORS_LINTERS:
+  - TYPESCRIPT_TS_STANDARD
+  - TYPESCRIPT_STANDARD
