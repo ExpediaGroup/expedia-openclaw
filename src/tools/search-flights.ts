@@ -81,6 +81,7 @@ export function createSearchFlightsTool(
       "the required line pointing the user to Expedia.com for the comprehensive view.",
     inputSchema: InputSchema,
 
+    // jscpd:ignore-start — structural similarity with search-stays execute body is intentional
     async execute(input: unknown): Promise<ToolResult> {
       const typedInput = input as Input;
       const credential = readCredential();
@@ -129,6 +130,7 @@ export function createSearchFlightsTool(
           contact_method: credential.contact_method,
         });
       }
+      // jscpd:ignore-end
     },
   };
 }
