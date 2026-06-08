@@ -30,3 +30,4 @@ package-lock.json
 # TypeScript build output
 dist/
 *.tsbuildinfo
+.npm_cache
