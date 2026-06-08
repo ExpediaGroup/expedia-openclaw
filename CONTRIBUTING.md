@@ -8,16 +8,16 @@
 ## Setup
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/ExpediaGroup/expedia-openclaw.git
 cd expedia-openclaw
 npm install --legacy-peer-deps
 ```
 
-`--legacy-peer-deps` is currently required because npm 7+ resolves the `oc`
-peer dependency strictly and the upstream `oc` package's own peer ranges
-conflict with this project's dev tooling versions. The flag is for local
-development only — published consumers install via `oc plugins install`,
-which does not use npm's peer-dep resolver.
+`--legacy-peer-deps` is currently required because npm 7+ resolves the
+`openclaw` peer dependency strictly and the upstream `openclaw` package's own
+peer ranges conflict with this project's dev tooling versions. The flag is
+for local development only — published consumers install via
+`openclaw plugins install`, which does not use npm's peer-dep resolver.
 
 ## Development Workflow
 

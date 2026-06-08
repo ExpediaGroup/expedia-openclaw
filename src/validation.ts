@@ -363,19 +363,13 @@ export function validateSearchFlightsRequest(
 
   if (
     req.filters?.max_stops != null &&
-    (req.filters.max_stops < 0 || req.filters.max_stops > 3)
+    (req.filters.max_stops < 0 || req.filters.max_stops > 5)
   ) {
     return {
       field: "filters.max_stops",
-      message: `max_stops must be 0-3 (got ${req.filters.max_stops})`,
+      message: `max_stops must be 0-5 (got ${req.filters.max_stops})`,
     };
   }
-
-  const priceErr = validatePriceRange(
-    req.filters?.price_min,
-    req.filters?.price_max,
-  );
-  if (priceErr != null) return priceErr;
 
   const limitErr = validateLimit(req.limit, 25);
   if (limitErr != null) return limitErr;

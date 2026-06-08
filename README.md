@@ -1,187 +1,103 @@
-# EG Travel — OC Plugin
+# Expedia OpenClaw Plugin
 
-Live hotel and flight search via the EG Travel Adapter.
+Live hotel and flight search powered by Expedia — built as an [OpenClaw](https://openclaw.com) plugin. Ask your agent for a hotel or a flight and get back real prices, real availability, and real booking links. No web scraping. No browser automation. No fabricated URLs.
+
+By using this plugin you agree to the [Terms and Conditions](https://www.expedia.com/product/expedia-openclaw/).
 
 ## Install
 
 ```bash
-oc plugins install @expediagroup/expedia-travel-openclaw
+openclaw plugins install clawhub:@expediagroup/expedia-openclaw
 ```
+
+Add the tools to your `~/.oc/oc.json`:
+
+```json
+{
+  "tools": {
+    "alsoAllow": [
+      "search_stays",
+      "search_flights",
+      "eg_travel_signup",
+      "eg_travel_verify"
+    ]
+  }
+}
+```
+
+Restart the gateway:
+
+```bash
+openclaw gateway restart
+```
+
+## How it works
+
+Ask your agent about hotels, vacation rentals, or flights:
+
+> "Find me a hotel in Manhattan for next weekend, two adults"
+
+> "Round-trip flights from SFO to Tokyo, August 12–22"
+
+The first time, the agent walks you through a one-time setup — it asks for your email, sends you a 6-digit code, and you paste the digits back into the chat. The whole thing takes about two minutes. After that, searches just work.
+
+Your access stays active as long as you keep using it. If you go about a week without searching, the agent sends you a fresh code automatically — you don't have to re-enter your email.
+
+## What you get back
+
+The agent presents real-time results from Expedia with prices, ratings, and direct booking links.
+
+**Hotels and vacation rentals:**
+
+> **The Plaza** ⭐⭐⭐⭐⭐ · 9.0/10 (1,000 reviews)
+> US$2,894 · Total
+> Iconic NYC landmark on Central Park & 5th Ave. Full-service spa, family-friendly.
+> 👉 Book on Expedia
+
+**Flights:**
+
+> **United Airlines** · San Francisco (SFO) → Tokyo (NRT)
+> Departs 11:15 AM · 11h 20m · Nonstop · Economy
+> $845 USD per adult · Checked bag included
+> 👉 View on Expedia
+
+You can refine with follow-ups like "only 5-star", "pet-friendly", "under $300/night", "fewer stops", or "show me business class" — the agent re-searches with updated filters each time.
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| `search_stays` | Search hotels and vacation rentals with filters, sorting, and an optional trip-intent description |
+| `search_flights` | Search flights with filters for stops, airline, cabin class, and more |
+| `eg_travel_signup` | Send a 6-digit verification code to your email (first-time setup or re-auth) |
+| `eg_travel_verify` | Exchange the code for an API token, saved automatically to your credential store |
+
+The bundled `travel-search` skill tells the agent when and how to use each tool — including the setup flow, re-authentication after inactivity, error handling, and output formatting.
 
 ## Configuration
 
-In `~/.oc/oc.json`:
+All configuration is optional. The plugin defaults to the public Expedia service and US pricing.
 
 ```json
 {
   "plugins": {
-    "eg-travel": {
-      "adapter_url": "https://www.expedia.com/product/expedia-in-openclaw",
-      "default_pos_country": "US",
-      "synthetic_mode": false
+    "entries": {
+      "expedia-openclaw": {
+        "enabled": true,
+        "config": {
+          "default_pos_country": "US",
+          "default_currency": "USD",
+          "request_timeout_ms": 12000
+        }
+      }
     }
   }
 }
 ```
 
-| Option                | Default                                               | Description                                                                      |
-| --------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `adapter_url`         | `https://www.expedia.com/product/expedia-in-openclaw` | EG Travel Adapter endpoint                                                       |
-| `default_pos_country` | `US`                                                  | ISO 3166-1 alpha-2 country code for pricing                                      |
-| `default_currency`    | _(adapter default)_                                   | ISO 4217 currency code                                                           |
-| `request_timeout_ms`  | `12000`                                               | HTTP timeout in milliseconds                                                     |
-| `synthetic_mode`      | `false`                                               | Use deterministic test data instead of live results (set `true` for development) |
+## Privacy
 
-## Tools
-
-### `search_stays`
-
-Search hotels, resorts, and vacation rentals with live pricing and availability.
-
-#### `search_stays` Input
-
-```json
-{
-  "destination": "Tokyo",
-  "check_in": "2026-06-10",
-  "check_out": "2026-06-13",
-  "adults": 2,
-  "limit": 5,
-  "sort": "CHEAPEST"
-}
-```
-
-#### `search_stays` Output (abbreviated)
-
-```json
-{
-  "request_id": "req_01HZ...",
-  "currency": "USD",
-  "nights": 3,
-  "result_count": 5,
-  "results": [
-    {
-      "property_id": "prop_123",
-      "name": "Shinjuku Granbell Hotel",
-      "property_type": "HOTEL",
-      "star_rating": 4,
-      "price": { "amount_total": 642.3, "currency": "USD" },
-      "free_cancellation": true,
-      "deeplink_url": "https://www.expedia.com/...?affcid=..."
-    }
-  ],
-  "usage_hint": "Always use the deeplink_url from results. Never construct booking URLs yourself."
-}
-```
-
-### `search_flights`
-
-Search flights with live pricing, schedules, and booking links.
-
-#### `search_flights` Input
-
-```json
-{
-  "origin": "SFO",
-  "destination": "LHR",
-  "departure_date": "2026-08-12",
-  "return_date": "2026-08-22",
-  "adults": 1,
-  "cabin_class": "ECONOMY",
-  "filters": { "max_stops": 1 }
-}
-```
-
-#### `search_flights` Output (abbreviated)
-
-```json
-{
-  "request_id": "req_01J0...",
-  "origin": { "code": "SFO", "label": "San Francisco" },
-  "destination": { "code": "LHR", "label": "London Heathrow" },
-  "currency": "USD",
-  "result_count": 8,
-  "results": [
-    {
-      "offer_id": "off_456",
-      "airline": { "code": "BA", "name": "British Airways" },
-      "cabin_class": "ECONOMY",
-      "price": { "amount_total": 845.0, "currency": "USD" },
-      "outbound": { "duration_minutes": 615, "stops": 0 },
-      "deeplink_url": "https://www.expedia.com/..."
-    }
-  ]
-}
-```
-
-### `eg_travel_signup`
-
-Request a temporary verification code via email or phone to get started.
-
-#### `eg_travel_signup` Input
-
-```json
-{ "contact": "user@example.com" }
-```
-
-#### `eg_travel_signup` Output
-
-```text
-Verification code sent to user@example.com. Code expires in 120 seconds.
-Call eg_travel_verify with the 6-digit code to complete signup.
-```
-
-### `eg_travel_verify`
-
-Exchange the verification code for an API token.
-
-#### `eg_travel_verify` Input
-
-```json
-{ "contact": "user@example.com", "code": "482910" }
-```
-
-#### `eg_travel_verify` Output
-
-```text
-Verified. Account active. You can now call search_stays or search_flights.
-```
-
-### `eg_tenant_status`
-
-Show current account status, quota usage, and token expiry.
-
-#### `eg_tenant_status` Input
-
-```json
-{}
-```
-
-#### `eg_tenant_status` Output (abbreviated)
-
-```json
-{
-  "tenant_id": "ten_abc",
-  "contact": "user@example.com",
-  "status": "active",
-  "default_pos": "US",
-  "quota": {
-    "limit_per_hour": 100,
-    "remaining": 73,
-    "used": 27,
-    "reset_at": "2026-05-20T11:00:00Z"
-  }
-}
-```
-
-## Getting Started
-
-1. Install the plugin
-2. Configure `adapter_url` to point to a running EG Travel Adapter
-3. Ask your agent to search for hotels or flights
-4. On first use, provide your email or phone number when prompted
-5. Enter the 6-digit verification code (expires in 2 minutes)
-6. Search away
+See the [Privacy and Data Use](https://www.expedia.com/product/expedia-openclaw/) section of the Terms and Conditions.
 
 ## Development
 
@@ -191,29 +107,12 @@ npm test                # unit tests (vitest)
 npm run test:integration # integration tests (requires adapter)
 npm run build           # compile TypeScript
 npm run type-check      # type check without emitting
+npm run lint            # eslint
 ```
 
-### NPM Scripts
+## Issues
 
-| Name               | Responsibility                                                   |
-| ------------------ | ---------------------------------------------------------------- |
-| `build`            | Compile TypeScript to `dist/`                                    |
-| `test`             | Run the vitest unit test suite                                   |
-| `test:integration` | Run integration tests against the adapter (skips if unreachable) |
-| `type-check`       | TypeScript check without emitting                                |
-| `lint`             | Run eslint on `src/`                                             |
-
-### Logging
-
-The plugin emits structured JSON logs via stdout/stderr. Control verbosity with `EG_TRAVEL_LOG_LEVEL`:
-
-```bash
-EG_TRAVEL_LOG_LEVEL=debug  # debug, info (default), warn, error
-```
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+File bug reports and feature requests at [github.com/ExpediaGroup/expedia-openclaw/issues](https://github.com/ExpediaGroup/expedia-openclaw/issues). See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup.
 
 ## License
 
