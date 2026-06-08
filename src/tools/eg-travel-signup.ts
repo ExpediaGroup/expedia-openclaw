@@ -52,12 +52,12 @@ export function createSignupTool(
 
       try {
         await client.signup({
-          contact: trimmedEmail,
+          contact: email,
           contact_method: "email",
         });
 
         return toolTextResult(
-          `A 6-digit verification code has been sent to ${trimmedEmail}. ` +
+          `A 6-digit verification code has been sent to ${email}. ` +
             `The code expires in 2 minutes. ` +
             `Ask the user to check their inbox for the code, then call \`eg_travel_verify\`.`,
         );

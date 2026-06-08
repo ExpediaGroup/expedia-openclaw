@@ -52,7 +52,7 @@ export function createVerifyTool(
       const emailErr = validateEmailInput(email);
       if (emailErr) return toolTextResult(emailErr);
 
-      const sanitized = sanitizeVerificationCode(code);
+      const sanitized = sanitizeVerificationCode(input.code);
       if (!sanitized.ok) {
         return toolTextResult(sanitized.error);
       }
