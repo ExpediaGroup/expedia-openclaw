@@ -45,8 +45,9 @@ export function createSignupTool(
       "Start the signup process by requesting a temporary verification code via email.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
-      const email = input.email.trim();
+    async execute(input: unknown): Promise<ToolResult> {
+      const { email: rawEmail } = input as Input;
+      const email = rawEmail.trim();
       const emailErr = validateEmailInput(email);
       if (emailErr) return toolTextResult(emailErr);
 

@@ -47,12 +47,13 @@ export function createVerifyTool(
       "Complete signup by exchanging the temporary verification code for an API token.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
-      const email = input.email.trim();
+    async execute(input: unknown): Promise<ToolResult> {
+      const typedInput = input as Input;
+      const email = typedInput.email.trim();
       const emailErr = validateEmailInput(email);
       if (emailErr) return toolTextResult(emailErr);
 
-      const sanitized = sanitizeVerificationCode(input.code);
+      const sanitized = sanitizeVerificationCode(typedInput.code);
       if (!sanitized.ok) {
         return toolTextResult(sanitized.error);
       }
