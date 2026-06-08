@@ -15,12 +15,20 @@ limitations under the License.
 */
 
 import { Type, type Static } from "@sinclair/typebox";
-import type { PluginConfig, SearchFlightsRequest } from "../types.js";
+import type {
+  PluginConfig,
+  SearchFlightsRequest,
+  InternalTool,
+} from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
 import { AdapterError, formatErrorForModel } from "../errors.js";
 import { validateSearchFlightsRequest } from "../validation.js";
 import { readCredential } from "../credential-store.js";
-import { toolTextResult, toolJsonResult, type ToolResult } from "../tool-result.js";
+import {
+  toolTextResult,
+  toolJsonResult,
+  type ToolResult,
+} from "../tool-result.js";
 
 const CabinClassEnum = Type.Union([
   Type.Literal("ECONOMY"),
@@ -40,7 +48,9 @@ const InputSchema = Type.Object({
   origin: Type.String({ minLength: 2, maxLength: 200 }),
   destination: Type.String({ minLength: 2, maxLength: 200 }),
   departure_date: Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }),
-  return_date: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" })),
+  return_date: Type.Optional(
+    Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }),
+  ),
   adults: Type.Integer({ minimum: 1, maximum: 6 }),
   children_ages: Type.Optional(
     Type.Array(Type.Integer({ minimum: 0, maximum: 17 }), { maxItems: 6 }),
@@ -65,7 +75,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createSearchFlightsTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createSearchFlightsTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+): InternalTool {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -75,7 +88,8 @@ export function createSearchFlightsTool(config: PluginConfig, fetchFn?: typeof g
       "Search for flights with live pricing, schedules, and booking links.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
+    async execute(input: unknown): Promise<ToolResult> {
+      const typedInput = input as Input;
       const credential = readCredential();
       if (!credential) {
         return toolTextResult(
@@ -85,11 +99,11 @@ export function createSearchFlightsTool(config: PluginConfig, fetchFn?: typeof g
       }
 
       const req: SearchFlightsRequest = {
-        ...input,
-        origin: input.origin?.trim() ?? "",
-        destination: input.destination?.trim() ?? "",
-        pos_country: input.pos_country ?? config.default_pos_country,
-        currency: input.currency ?? config.default_currency,
+        ...typedInput,
+        origin: typedInput.origin?.trim() ?? "",
+        destination: typedInput.destination?.trim() ?? "",
+        pos_country: typedInput.pos_country ?? config.default_pos_country,
+        currency: typedInput.currency ?? config.default_currency,
       };
 
       const validationError = validateSearchFlightsRequest(req);

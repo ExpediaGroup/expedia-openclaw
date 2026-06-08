@@ -63,7 +63,7 @@ export function isAuthFailure(error: AdapterError): boolean {
     "token_invalid",
     "token_missing",
     "auth_failed",
-    "authentication_required"
+    "authentication_required",
   ];
   return AUTH_FAILURE_CODES.includes(code);
 }
@@ -78,10 +78,13 @@ export function formatErrorForModel(
   adapterUrl?: string,
   cachedContact?: CachedContact,
 ): string {
-  const rid = error.requestId ? ` (request_id: ${error.requestId})` : "";
+  const rid: string =
+    error.requestId != null && error.requestId !== ""
+      ? ` (request_id: ${error.requestId})`
+      : "";
 
   if (isAuthFailure(error)) {
-    if (cachedContact) {
+    if (cachedContact != null) {
       return (
         `Your EG Travel access needs a fresh token (${error.code}). ` +
         `The cached contact is **${cachedContact.contact}** (${cachedContact.contact_method}). ` +

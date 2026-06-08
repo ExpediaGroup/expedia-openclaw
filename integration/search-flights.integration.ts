@@ -22,7 +22,9 @@ let available = false;
 beforeAll(async () => {
   available = await adapterAvailable();
   if (!available) {
-    console.log(`Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`);
+    console.log(
+      `Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`,
+    );
   }
 });
 

@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 import { Type, type Static } from "@sinclair/typebox";
-import type { PluginConfig } from "../types.js";
+import type { PluginConfig, InternalTool } from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
 import { AdapterError, formatErrorForModel } from "../errors.js";
 import { toolTextResult, type ToolResult } from "../tool-result.js";
@@ -33,7 +33,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createSignupTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createSignupTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+): InternalTool {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -43,20 +46,21 @@ export function createSignupTool(config: PluginConfig, fetchFn?: typeof globalTh
       "Start the signup process by requesting a temporary verification code via email.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
-      const email = input.email.trim();
-      if (!EMAIL_RE.test(email)) {
-        return toolTextResult(`'${email}' is not a valid email address`);
+    async execute(input: unknown): Promise<ToolResult> {
+      const { email } = input as Input;
+      const trimmedEmail = email.trim();
+      if (!EMAIL_RE.test(trimmedEmail)) {
+        return toolTextResult(`'${trimmedEmail}' is not a valid email address`);
       }
 
       try {
         await client.signup({
-          contact: email,
+          contact: trimmedEmail,
           contact_method: "email",
         });
 
         return toolTextResult(
-          `A 6-digit verification code has been sent to ${email}. ` +
+          `A 6-digit verification code has been sent to ${trimmedEmail}. ` +
             `The code expires in 2 minutes. ` +
             `Ask the user to check their inbox for the code, then call \`eg_travel_verify\`.`,
         );

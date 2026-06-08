@@ -36,7 +36,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createVerifyTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+) {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -46,13 +49,14 @@ export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalTh
       "Complete signup by exchanging the temporary verification code for an API token.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
-      const email = input.email.trim();
-      if (!EMAIL_RE.test(email)) {
-        return toolTextResult(`'${email}' is not a valid email address`);
+    async execute(input: unknown): Promise<ToolResult> {
+      const { email, code } = input as Input;
+      const trimmedEmail = email.trim();
+      if (!EMAIL_RE.test(trimmedEmail)) {
+        return toolTextResult(`'${trimmedEmail}' is not a valid email address`);
       }
 
-      const sanitized = sanitizeVerificationCode(input.code);
+      const sanitized = sanitizeVerificationCode(code);
       if (!sanitized.ok) {
         return toolTextResult(sanitized.error);
       }

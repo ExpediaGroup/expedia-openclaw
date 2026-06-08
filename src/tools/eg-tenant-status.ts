@@ -20,7 +20,10 @@ import { AdapterError, formatErrorForModel } from "../errors.js";
 import { readCredential } from "../credential-store.js";
 import { toolTextResult, type ToolResult } from "../tool-result.js";
 
-export function createTenantStatusTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createTenantStatusTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+) {
   const client = new AdapterClient(config, fetchFn);
 
   return {

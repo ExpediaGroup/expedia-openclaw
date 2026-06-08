@@ -53,13 +53,19 @@ describe("eg_travel_verify tool", () => {
 
   it("rejects code with wrong length", async () => {
     const tool = createVerifyTool(config);
-    const result = await tool.execute({ email: "user@example.com", code: "12345" });
+    const result = await tool.execute({
+      email: "user@example.com",
+      code: "12345",
+    });
     expect(result.content[0].text).toContain("6 digits");
   });
 
   it("rejects code with non-digit characters", async () => {
     const tool = createVerifyTool(config);
-    const result = await tool.execute({ email: "user@example.com", code: "12345a" });
+    const result = await tool.execute({
+      email: "user@example.com",
+      code: "12345a",
+    });
     expect(result.content[0].text).toContain("6 digits");
   });
 
@@ -71,7 +77,10 @@ describe("eg_travel_verify tool", () => {
     });
 
     const tool = createVerifyTool(config, fakeFetch);
-    const result = await tool.execute({ email: "user@example.com", code: "123-456" });
+    const result = await tool.execute({
+      email: "user@example.com",
+      code: "123-456",
+    });
 
     expect(result.content[0].text).not.toContain("6 digits");
     expect(fakeFetch).toHaveBeenCalledOnce();
@@ -89,7 +98,10 @@ describe("eg_travel_verify tool", () => {
     });
 
     const tool = createVerifyTool(config, fakeFetch);
-    const result = await tool.execute({ email: "user@example.com", code: "654321" });
+    const result = await tool.execute({
+      email: "user@example.com",
+      code: "654321",
+    });
 
     expect(result.content[0].text).toContain("Verification successful");
     expect(result.content[0].text).toContain("99/100");

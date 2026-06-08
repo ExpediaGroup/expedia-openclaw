@@ -24,11 +24,13 @@ which does not use npm's peer-dep resolver.
 1. Create a feature branch from `main`
 2. Make your changes in `src/`
 3. Run checks:
+
    ```bash
    npm run type-check
    npm test
    npm run build
    ```
+
 4. Open a pull request against `main`
 
 ## Testing
@@ -45,6 +47,7 @@ which does not use npm's peer-dep resolver.
 ## Reporting Issues
 
 Open a GitHub issue with:
+
 - Steps to reproduce
 - Expected vs actual behavior
 - Node.js version and OS

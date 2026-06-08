@@ -7,7 +7,7 @@ Live hotel and flight search via the EG Travel Adapter.
 ```bash
 oc plugins install @expediagroup/expedia-travel-openclaw
 ```
- 
+
 ## Configuration
 
 In `~/.oc/oc.json`:
@@ -24,13 +24,13 @@ In `~/.oc/oc.json`:
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `adapter_url` | `https://www.expedia.com/product/expedia-in-openclaw` | EG Travel Adapter endpoint |
-| `default_pos_country` | `US` | ISO 3166-1 alpha-2 country code for pricing |
-| `default_currency` | _(adapter default)_ | ISO 4217 currency code |
-| `request_timeout_ms` | `12000` | HTTP timeout in milliseconds |
-| `synthetic_mode` | `false` | Use deterministic test data instead of live results (set `true` for development) |
+| Option                | Default                                               | Description                                                                      |
+| --------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `adapter_url`         | `https://www.expedia.com/product/expedia-in-openclaw` | EG Travel Adapter endpoint                                                       |
+| `default_pos_country` | `US`                                                  | ISO 3166-1 alpha-2 country code for pricing                                      |
+| `default_currency`    | _(adapter default)_                                   | ISO 4217 currency code                                                           |
+| `request_timeout_ms`  | `12000`                                               | HTTP timeout in milliseconds                                                     |
+| `synthetic_mode`      | `false`                                               | Use deterministic test data instead of live results (set `true` for development) |
 
 ## Tools
 
@@ -38,7 +38,7 @@ In `~/.oc/oc.json`:
 
 Search hotels, resorts, and vacation rentals with live pricing and availability.
 
-**Input**
+#### `search_stays` Input
 
 ```json
 {
@@ -51,7 +51,7 @@ Search hotels, resorts, and vacation rentals with live pricing and availability.
 }
 ```
 
-**Output (abbreviated)**
+#### `search_stays` Output (abbreviated)
 
 ```json
 {
@@ -65,7 +65,7 @@ Search hotels, resorts, and vacation rentals with live pricing and availability.
       "name": "Shinjuku Granbell Hotel",
       "property_type": "HOTEL",
       "star_rating": 4,
-      "price": { "amount_total": 642.30, "currency": "USD" },
+      "price": { "amount_total": 642.3, "currency": "USD" },
       "free_cancellation": true,
       "deeplink_url": "https://www.expedia.com/...?affcid=..."
     }
@@ -78,7 +78,7 @@ Search hotels, resorts, and vacation rentals with live pricing and availability.
 
 Search flights with live pricing, schedules, and booking links.
 
-**Input**
+#### `search_flights` Input
 
 ```json
 {
@@ -92,7 +92,7 @@ Search flights with live pricing, schedules, and booking links.
 }
 ```
 
-**Output (abbreviated)**
+#### `search_flights` Output (abbreviated)
 
 ```json
 {
@@ -106,7 +106,7 @@ Search flights with live pricing, schedules, and booking links.
       "offer_id": "off_456",
       "airline": { "code": "BA", "name": "British Airways" },
       "cabin_class": "ECONOMY",
-      "price": { "amount_total": 845.00, "currency": "USD" },
+      "price": { "amount_total": 845.0, "currency": "USD" },
       "outbound": { "duration_minutes": 615, "stops": 0 },
       "deeplink_url": "https://www.expedia.com/..."
     }
@@ -118,13 +118,13 @@ Search flights with live pricing, schedules, and booking links.
 
 Request a temporary verification code via email or phone to get started.
 
-**Input**
+#### `eg_travel_signup` Input
 
 ```json
 { "contact": "user@example.com" }
 ```
 
-**Output**
+#### `eg_travel_signup` Output
 
 ```text
 Verification code sent to user@example.com. Code expires in 120 seconds.
@@ -135,13 +135,13 @@ Call eg_travel_verify with the 6-digit code to complete signup.
 
 Exchange the verification code for an API token.
 
-**Input**
+#### `eg_travel_verify` Input
 
 ```json
 { "contact": "user@example.com", "code": "482910" }
 ```
 
-**Output**
+#### `eg_travel_verify` Output
 
 ```text
 Verified. Account active. You can now call search_stays or search_flights.
@@ -151,13 +151,13 @@ Verified. Account active. You can now call search_stays or search_flights.
 
 Show current account status, quota usage, and token expiry.
 
-**Input**
+#### `eg_tenant_status` Input
 
 ```json
 {}
 ```
 
-**Output (abbreviated)**
+#### `eg_tenant_status` Output (abbreviated)
 
 ```json
 {
@@ -165,7 +165,12 @@ Show current account status, quota usage, and token expiry.
   "contact": "user@example.com",
   "status": "active",
   "default_pos": "US",
-  "quota": { "limit_per_hour": 100, "remaining": 73, "used": 27, "reset_at": "2026-05-20T11:00:00Z" }
+  "quota": {
+    "limit_per_hour": 100,
+    "remaining": 73,
+    "used": 27,
+    "reset_at": "2026-05-20T11:00:00Z"
+  }
 }
 ```
 
@@ -190,13 +195,13 @@ npm run type-check      # type check without emitting
 
 ### NPM Scripts
 
-| Name | Responsibility |
-|------|---------------|
-| `build` | Compile TypeScript to `dist/` |
-| `test` | Run the vitest unit test suite |
+| Name               | Responsibility                                                   |
+| ------------------ | ---------------------------------------------------------------- |
+| `build`            | Compile TypeScript to `dist/`                                    |
+| `test`             | Run the vitest unit test suite                                   |
 | `test:integration` | Run integration tests against the adapter (skips if unreachable) |
-| `type-check` | TypeScript check without emitting |
-| `lint` | Run eslint on `src/` |
+| `type-check`       | TypeScript check without emitting                                |
+| `lint`             | Run eslint on `src/`                                             |
 
 ### Logging
 

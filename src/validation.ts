@@ -14,7 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { ContactMethod, SearchStaysRequest, SearchFlightsRequest } from "./types.js";
+import type {
+  ContactMethod,
+  SearchStaysRequest,
+  SearchFlightsRequest,
+} from "./types.js";
 
 export interface ValidationError {
   field: string;
@@ -31,7 +35,7 @@ export type ContactResult =
   | { ok: false; error: string };
 
 export function detectContactMethod(contact: string): ContactResult {
-  if (!contact || contact.trim().length === 0) {
+  if (contact === "" || contact.trim().length === 0) {
     return { ok: false, error: "An email address or phone number is required" };
   }
   const trimmed = contact.trim();
@@ -72,14 +76,21 @@ export function sanitizeVerificationCode(raw: string): CodeResult {
 
 function parseDate(value: string, field: string): Date | ValidationError {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return { field, message: `${field} '${value}' must be in YYYY-MM-DD format` };
+    return {
+      field,
+      message: `${field} '${value}' must be in YYYY-MM-DD format`,
+    };
   }
   const d = new Date(value + "T00:00:00Z");
   if (isNaN(d.getTime())) {
     return { field, message: `${field} '${value}' is not a valid date` };
   }
   const [y, m, day] = value.split("-").map(Number);
-  if (d.getUTCFullYear() !== y || d.getUTCMonth() + 1 !== m || d.getUTCDate() !== day) {
+  if (
+    d.getUTCFullYear() !== y ||
+    d.getUTCMonth() + 1 !== m ||
+    d.getUTCDate() !== day
+  ) {
     return { field, message: `${field} '${value}' is not a valid date` };
   }
   return d;
@@ -87,7 +98,9 @@ function parseDate(value: string, field: string): Date | ValidationError {
 
 function todayUTC(): Date {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
 }
 
 function daysBetween(a: Date, b: Date): number {
@@ -106,15 +119,15 @@ function validateAdults(adults: number): ValidationError | null {
   return null;
 }
 
-function validateChildrenAges(children_ages?: number[]): ValidationError | null {
-  if (children_ages) {
-    if (children_ages.length > 6) {
+function validateChildrenAges(childrenAges?: number[]): ValidationError | null {
+  if (childrenAges != null) {
+    if (childrenAges.length > 6) {
       return {
         field: "children_ages",
-        message: `Maximum 6 children (got ${children_ages.length})`,
+        message: `Maximum 6 children (got ${childrenAges.length})`,
       };
     }
-    for (const age of children_ages) {
+    for (const age of childrenAges) {
       if (age < 0 || age > 17) {
         return {
           field: "children_ages",
@@ -126,19 +139,25 @@ function validateChildrenAges(children_ages?: number[]): ValidationError | null 
   return null;
 }
 
-function validatePriceRange(price_min?: number, price_max?: number): ValidationError | null {
-  if (price_min != null && price_max != null) {
-    if (price_min > price_max) {
+function validatePriceRange(
+  priceMin?: number,
+  priceMax?: number,
+): ValidationError | null {
+  if (priceMin != null && priceMax != null) {
+    if (priceMin > priceMax) {
       return {
         field: "filters.price",
-        message: `price_min (${price_min}) cannot exceed price_max (${price_max})`,
+        message: `price_min (${priceMin}) cannot exceed price_max (${priceMax})`,
       };
     }
   }
   return null;
 }
 
-function validateLimit(limit: number | undefined, max: number): ValidationError | null {
+function validateLimit(
+  limit: number | undefined,
+  max: number,
+): ValidationError | null {
   if (limit != null && (limit < 1 || limit > max)) {
     return {
       field: "limit",
@@ -199,12 +218,12 @@ export function validateSearchStaysRequest(
   }
 
   const adultsErr = validateAdults(req.adults);
-  if (adultsErr) return adultsErr;
+  if (adultsErr != null) return adultsErr;
 
   const childrenErr = validateChildrenAges(req.children_ages);
-  if (childrenErr) return childrenErr;
+  if (childrenErr != null) return childrenErr;
 
-  if (req.filters?.star_rating) {
+  if (req.filters?.star_rating != null) {
     const { min, max } = req.filters.star_rating;
     if (min != null && max != null && min > max) {
       return {
@@ -214,11 +233,14 @@ export function validateSearchStaysRequest(
     }
   }
 
-  const priceErr = validatePriceRange(req.filters?.price_min, req.filters?.price_max);
-  if (priceErr) return priceErr;
+  const priceErr = validatePriceRange(
+    req.filters?.price_min,
+    req.filters?.price_max,
+  );
+  if (priceErr != null) return priceErr;
 
   const limitErr = validateLimit(req.limit, 100);
-  if (limitErr) return limitErr;
+  if (limitErr != null) return limitErr;
 
   if (req.radius_km != null && (req.radius_km < 1 || req.radius_km > 200)) {
     return {
@@ -284,7 +306,7 @@ export function validateSearchFlightsRequest(
     };
   }
 
-  if (req.return_date) {
+  if (req.return_date != null && req.return_date !== "") {
     const returnDate = parseDate(req.return_date, "return_date");
     if ("field" in returnDate) return returnDate;
 
@@ -305,10 +327,10 @@ export function validateSearchFlightsRequest(
   }
 
   const adultsErr = validateAdults(req.adults);
-  if (adultsErr) return adultsErr;
+  if (adultsErr != null) return adultsErr;
 
   const childrenErr = validateChildrenAges(req.children_ages);
-  if (childrenErr) return childrenErr;
+  if (childrenErr != null) return childrenErr;
 
   if (req.infants_in_lap != null) {
     if (req.infants_in_lap < 0 || req.infants_in_lap > 2) {
@@ -325,25 +347,31 @@ export function validateSearchFlightsRequest(
     }
   }
 
-  if (req.cabin_class && !VALID_CABIN_CLASSES.has(req.cabin_class)) {
+  if (req.cabin_class != null && !VALID_CABIN_CLASSES.has(req.cabin_class)) {
     return {
       field: "cabin_class",
       message: `Unknown cabin class '${req.cabin_class}'`,
     };
   }
 
-  if (req.filters?.max_stops != null && (req.filters.max_stops < 0 || req.filters.max_stops > 3)) {
+  if (
+    req.filters?.max_stops != null &&
+    (req.filters.max_stops < 0 || req.filters.max_stops > 3)
+  ) {
     return {
       field: "filters.max_stops",
       message: `max_stops must be 0-3 (got ${req.filters.max_stops})`,
     };
   }
 
-  const priceErr = validatePriceRange(req.filters?.price_min, req.filters?.price_max);
-  if (priceErr) return priceErr;
+  const priceErr = validatePriceRange(
+    req.filters?.price_min,
+    req.filters?.price_max,
+  );
+  if (priceErr != null) return priceErr;
 
   const limitErr = validateLimit(req.limit, 25);
-  if (limitErr) return limitErr;
+  if (limitErr != null) return limitErr;
 
   return null;
 }

@@ -41,13 +41,17 @@ function makeError(
 
 describe("formatErrorForModel", () => {
   it("maps unauthorized to signup prompt", () => {
-    const msg = formatErrorForModel(makeError("unauthorized", { httpStatus: 401 }));
+    const msg = formatErrorForModel(
+      makeError("unauthorized", { httpStatus: 401 }),
+    );
     expect(msg).toContain("eg_travel_signup");
     expect(msg).toContain("email address");
   });
 
   it("maps token_expired to re-auth prompt", () => {
-    const msg = formatErrorForModel(makeError("token_expired", { httpStatus: 401 }));
+    const msg = formatErrorForModel(
+      makeError("token_expired", { httpStatus: 401 }),
+    );
     expect(msg).toContain("eg_travel_signup");
     expect(msg).toContain("cached contact");
   });
@@ -85,7 +89,9 @@ describe("formatErrorForModel", () => {
   });
 
   it("maps code_expired to re-signup", () => {
-    const msg = formatErrorForModel(makeError("code_expired", { httpStatus: 400 }));
+    const msg = formatErrorForModel(
+      makeError("code_expired", { httpStatus: 400 }),
+    );
     expect(msg).toContain("2-minute");
     expect(msg).toContain("eg_travel_signup");
   });
@@ -111,39 +117,54 @@ describe("formatErrorForModel", () => {
 
   it("includes request_id for internal_error", () => {
     const msg = formatErrorForModel(
-      makeError("internal_error", { httpStatus: 500, request_id: "req_abc123" }),
+      makeError("internal_error", {
+        httpStatus: 500,
+        request_id: "req_abc123",
+      }),
     );
     expect(msg).toContain("req_abc123");
   });
 
   it("maps code_attempts_exceeded with retry", () => {
     const msg = formatErrorForModel(
-      makeError("code_attempts_exceeded", { httpStatus: 429, retry_after_seconds: 300 }),
+      makeError("code_attempts_exceeded", {
+        httpStatus: 429,
+        retry_after_seconds: 300,
+      }),
     );
     expect(msg).toContain("5 minutes");
     expect(msg).toContain("new code");
   });
 
   it("maps disposable_email to permanent email guidance", () => {
-    const msg = formatErrorForModel(makeError("disposable_email", { httpStatus: 400 }));
+    const msg = formatErrorForModel(
+      makeError("disposable_email", { httpStatus: 400 }),
+    );
     expect(msg).toContain("Disposable");
     expect(msg).toContain("permanent");
   });
 
   it("maps upstream_timeout", () => {
-    const msg = formatErrorForModel(makeError("upstream_timeout", { httpStatus: 504 }));
+    const msg = formatErrorForModel(
+      makeError("upstream_timeout", { httpStatus: 504 }),
+    );
     expect(msg).toContain("timed out");
   });
 
   it("maps upstream_unavailable with retry", () => {
     const msg = formatErrorForModel(
-      makeError("upstream_unavailable", { httpStatus: 503, retry_after_seconds: 60 }),
+      makeError("upstream_unavailable", {
+        httpStatus: 503,
+        retry_after_seconds: 60,
+      }),
     );
     expect(msg).toContain("1 minute");
   });
 
   it("handles unknown error codes gracefully", () => {
-    const msg = formatErrorForModel(makeError("some_new_code", { message: "oops" }));
+    const msg = formatErrorForModel(
+      makeError("some_new_code", { message: "oops" }),
+    );
     expect(msg).toContain("some_new_code");
     expect(msg).toContain("oops");
   });
@@ -180,27 +201,41 @@ describe("formatErrorForModel", () => {
 
 describe("isAuthFailure", () => {
   it("matches HTTP 401", () => {
-    expect(isAuthFailure(makeError("anything", { httpStatus: 401 }))).toBe(true);
+    expect(isAuthFailure(makeError("anything", { httpStatus: 401 }))).toBe(
+      true,
+    );
   });
 
   it("matches HTTP 403", () => {
-    expect(isAuthFailure(makeError("anything", { httpStatus: 403 }))).toBe(true);
+    expect(isAuthFailure(makeError("anything", { httpStatus: 403 }))).toBe(
+      true,
+    );
   });
 
   it("matches code containing 'auth'", () => {
-    expect(isAuthFailure(makeError("auth_failed", { httpStatus: 500 }))).toBe(true);
+    expect(isAuthFailure(makeError("auth_failed", { httpStatus: 500 }))).toBe(
+      true,
+    );
   });
 
   it("matches code containing 'token'", () => {
-    expect(isAuthFailure(makeError("token_invalid", { httpStatus: 500 }))).toBe(true);
+    expect(isAuthFailure(makeError("token_invalid", { httpStatus: 500 }))).toBe(
+      true,
+    );
   });
 
   it("matches the literal 'forbidden' code", () => {
-    expect(isAuthFailure(makeError("forbidden", { httpStatus: 500 }))).toBe(true);
+    expect(isAuthFailure(makeError("forbidden", { httpStatus: 500 }))).toBe(
+      true,
+    );
   });
 
   it("does not match unrelated errors", () => {
-    expect(isAuthFailure(makeError("internal_error", { httpStatus: 500 }))).toBe(false);
-    expect(isAuthFailure(makeError("invalid_request", { httpStatus: 400 }))).toBe(false);
+    expect(
+      isAuthFailure(makeError("internal_error", { httpStatus: 500 })),
+    ).toBe(false);
+    expect(
+      isAuthFailure(makeError("invalid_request", { httpStatus: 400 })),
+    ).toBe(false);
   });
 });
