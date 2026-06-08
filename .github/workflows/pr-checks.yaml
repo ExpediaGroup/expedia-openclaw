@@ -1,0 +1,69 @@
+---
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, Type-check, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for MegaLinter
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm install --legacy-peer-deps
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter/flavors/javascript@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false # Only validate changed files in PR
+
+      - name: Type Check
+        run: npm run type-check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: vars.ADAPTER_URL != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm install --legacy-peer-deps
+
+      - name: Integration Tests
+        run: npm run test:integration
+        env:
+          ADAPTER_URL: ${{ vars.ADAPTER_URL }}

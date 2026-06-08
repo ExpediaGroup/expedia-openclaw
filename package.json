@@ -1,0 +1,69 @@
+{
+  "name": "@expediagroup/expedia-travel-openclaw",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin for live hotel and flight search via Expedia Travel Adapter",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "skills",
+    "openclaw.plugin.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "sync-version": "node scripts/sync-version.mjs",
+    "prebuild": "npm run sync-version",
+    "pretest": "npm run sync-version",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.4.5"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.33.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.32.0",
+    "openclaw": "2026.5.26",
+    "typescript": "~5.6.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.4.5"
+    },
+    "build": {
+      "openclawVersion": "2026.5.26"
+    },
+    "install": {
+      "npmSpec": "@expediagroup/expedia-travel-openclaw",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.4.5"
+    },
+    "release": {
+      "publishToClawHub": true,
+      "publishToNpm": true
+    }
+  },
+  "license": "Apache-2.0"
+}
