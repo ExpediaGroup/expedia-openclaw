@@ -3,7 +3,7 @@
 APPLY_FIXES: all
 SHOW_ELAPSED_TIME: true
 
-EXCLUDES:
+EXCLUDED_DIRECTORIES:
   - node_modules
   - dist
   - .npm_cache
