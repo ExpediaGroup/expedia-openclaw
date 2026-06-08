@@ -286,7 +286,7 @@ describe("validateSearchFlightsRequest", () => {
 
   it("rejects max_stops out of range", () => {
     const err = validateSearchFlightsRequest(
-      validFlightReq({ filters: { max_stops: 5 } }),
+      validFlightReq({ filters: { max_stops: 6 } }),
     );
     expect(err?.field).toBe("filters.max_stops");
   });

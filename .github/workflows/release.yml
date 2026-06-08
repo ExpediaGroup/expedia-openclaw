@@ -30,9 +30,15 @@ jobs:
           CI: true
 
       - name: Build
-        run: npm run build && cd dist && ls -la
+        run: npm run build
+
+      - name: Prepare dist for publishing
+        run: |
+          cp package.json README.md LICENSE openclaw.plugin.json dist/
+          cp -r skills dist/
 
       - name: Release
+        id: semantic
         uses: cycjimmy/semantic-release-action@v6
         with:
           working_directory: dist
@@ -40,3 +46,22 @@ jobs:
             conventional-changelog-conventionalcommits@9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install ClawHub CLI
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: npm i -g clawhub
+
+      - name: Publish to ClawHub
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          clawhub login --token "$CLAWHUB_TOKEN" --no-browser
+          clawhub package publish . \
+            --family code-plugin \
+            --version "v${{ steps.semantic.outputs.new_release_version }}" \
+            --source-repo "${{ github.repository }}" \
+            --source-commit "${{ github.sha }}" \
+            --source-ref "v${{ steps.semantic.outputs.new_release_git_tag }}" \
+            --changelog "${{ steps.semantic.outputs.new_release_notes }}" \
+            --tags latest
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}

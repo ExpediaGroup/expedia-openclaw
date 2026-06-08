@@ -1,5 +1,5 @@
 {
-  "name": "@expediagroup/expedia-travel-openclaw",
+  "name": "@expediagroup/expedia-openclaw",
   "version": "0.1.0",
   "description": "OpenClaw plugin for live hotel and flight search via Expedia Travel Adapter",
   "type": "module",
@@ -56,7 +56,7 @@
       "openclawVersion": "2026.5.26"
     },
     "install": {
-      "npmSpec": "@expediagroup/expedia-travel-openclaw",
+      "npmSpec": "@expediagroup/expedia-openclaw",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.5"
     },

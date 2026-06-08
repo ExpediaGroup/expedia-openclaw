@@ -149,14 +149,12 @@ export interface SearchStaysResponse {
 // --- Search flights ---
 
 export type CabinClass = "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
-export type FlightSort = "CHEAPEST" | "FASTEST" | "BEST" | "MOST_EXPENSIVE";
+export type FlightSort = "PRICE" | "DURATION";
 
 export interface FlightFilters {
   max_stops?: number;
-  preferred_airlines?: string[];
-  max_duration_minutes?: number;
-  price_min?: number;
-  price_max?: number;
+  airline_code?: string;
+  exclude_basic_economy?: boolean;
 }
 
 export interface SearchFlightsRequest {

@@ -44,7 +44,7 @@ function adaptTool(tool: InternalTool): AnyAgentTool {
 }
 
 export default definePluginEntry({
-  id: "expedia-travel-openclaw",
+  id: "expedia-openclaw",
   name: "Expedia Travel",
   description:
     "Live hotel, resort, vacation rental, and flight search via the Expedia Travel Adapter",
