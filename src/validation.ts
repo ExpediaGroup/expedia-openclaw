@@ -23,7 +23,14 @@ export interface ValidationError {
 
 // --- Contact validation ---
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function validateEmailInput(email: string): string | null {
+  if (!EMAIL_RE.test(email)) {
+    return `'${email}' is not a valid email address`;
+  }
+  return null;
+}
 const PHONE_E164_RE = /^\+\d{7,15}$/;
 
 export type ContactResult =

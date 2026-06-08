@@ -14,18 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { describe, it, expect } from "vitest";
-import { createClient, setupAvailabilityCheck } from "./setup.js";
+import { Type } from "@sinclair/typebox";
 
-const { isAvailable } = setupAvailabilityCheck();
+export const AdultsSchema = Type.Integer({ minimum: 1, maximum: 6 });
 
-describe("adapter health", () => {
-  it("returns ok status", async ({ skip }) => {
-    if (!isAvailable()) skip();
-    const client = createClient();
-    const resp = await client.health();
-    expect(resp.status).toMatch(/^(ok|degraded)$/);
-    expect(resp.version).toBeTruthy();
-    expect(resp.uptime_seconds).toBeGreaterThanOrEqual(0);
-  });
-});
+export const ChildrenAgesSchema = Type.Optional(
+  Type.Array(Type.Integer({ minimum: 0, maximum: 17 }), { maxItems: 6 }),
+);
+
+export const PosCountrySchema = Type.Optional(Type.String());
+
+export const CurrencySchema = Type.Optional(Type.String());
+
+export const IntentSchema = Type.Optional(Type.String({ maxLength: 280 }));

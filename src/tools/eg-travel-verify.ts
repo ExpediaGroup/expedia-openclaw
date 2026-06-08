@@ -18,11 +18,9 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { PluginConfig } from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
 import { AdapterError, formatErrorForModel } from "../errors.js";
-import { sanitizeVerificationCode } from "../validation.js";
+import { validateEmailInput, sanitizeVerificationCode } from "../validation.js";
 import { writeCredential } from "../credential-store.js";
 import { toolTextResult, type ToolResult } from "../tool-result.js";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const InputSchema = Type.Object({
   email: Type.String({
@@ -48,9 +46,8 @@ export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalTh
 
     async execute(input: Input): Promise<ToolResult> {
       const email = input.email.trim();
-      if (!EMAIL_RE.test(email)) {
-        return toolTextResult(`'${email}' is not a valid email address`);
-      }
+      const emailErr = validateEmailInput(email);
+      if (emailErr) return toolTextResult(emailErr);
 
       const sanitized = sanitizeVerificationCode(input.code);
       if (!sanitized.ok) {

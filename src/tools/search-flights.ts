@@ -17,10 +17,11 @@ limitations under the License.
 import { Type, type Static } from "@sinclair/typebox";
 import type { PluginConfig, SearchFlightsRequest } from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
-import { AdapterError, formatErrorForModel } from "../errors.js";
+import { catchAdapterError } from "../errors.js";
 import { validateSearchFlightsRequest } from "../validation.js";
 import { readCredential } from "../credential-store.js";
 import { toolTextResult, toolJsonResult, type ToolResult } from "../tool-result.js";
+import { AdultsSchema, ChildrenAgesSchema, PosCountrySchema, CurrencySchema, IntentSchema } from "../shared-schema.js";
 
 const CabinClassEnum = Type.Union([
   Type.Literal("ECONOMY"),
@@ -41,10 +42,8 @@ const InputSchema = Type.Object({
   destination: Type.String({ minLength: 2, maxLength: 200 }),
   departure_date: Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }),
   return_date: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" })),
-  adults: Type.Integer({ minimum: 1, maximum: 6 }),
-  children_ages: Type.Optional(
-    Type.Array(Type.Integer({ minimum: 0, maximum: 17 }), { maxItems: 6 }),
-  ),
+  adults: AdultsSchema,
+  children_ages: ChildrenAgesSchema,
   infants_in_lap: Type.Optional(Type.Integer({ minimum: 0, maximum: 2 })),
   cabin_class: Type.Optional(CabinClassEnum),
   filters: Type.Optional(
@@ -58,9 +57,9 @@ const InputSchema = Type.Object({
   ),
   limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 25 })),
   sort: Type.Optional(FlightSortEnum),
-  pos_country: Type.Optional(Type.String()),
-  currency: Type.Optional(Type.String()),
-  intent: Type.Optional(Type.String({ maxLength: 280 })),
+  pos_country: PosCountrySchema,
+  currency: CurrencySchema,
+  intent: IntentSchema,
 });
 
 type Input = Static<typeof InputSchema>;
@@ -110,15 +109,10 @@ export function createSearchFlightsTool(config: PluginConfig, fetchFn?: typeof g
 
         return toolJsonResult(result);
       } catch (err) {
-        if (err instanceof AdapterError) {
-          return toolTextResult(
-            formatErrorForModel(err, config.adapter_url, {
-              contact: credential.contact,
-              contact_method: credential.contact_method,
-            }),
-          );
-        }
-        throw err;
+        return catchAdapterError(err, config.adapter_url, {
+          contact: credential.contact,
+          contact_method: credential.contact_method,
+        });
       }
     },
   };
