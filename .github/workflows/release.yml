@@ -63,10 +63,10 @@ jobs:
           clawhub login --token "$CLAWHUB_TOKEN" --no-browser
           clawhub package publish dist/ \
             --family code-plugin \
-            --version "v${{ steps.semantic.outputs.new_release_version }}" \
+            --version "${{ steps.semantic.outputs.new_release_version }}" \
             --source-repo "${{ github.repository }}" \
             --source-commit "${{ github.sha }}" \
-            --source-ref "v${{ steps.semantic.outputs.new_release_git_tag }}" \
+            --source-ref "${{ steps.semantic.outputs.new_release_git_tag }}" \
             --changelog "${{ steps.semantic.outputs.new_release_notes }}" \
             --tags latest
         env:
