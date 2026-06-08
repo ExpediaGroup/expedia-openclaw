@@ -1,0 +1,6 @@
+{
+  "threshold": 10,
+  "reporters": ["console"],
+  "ignore": ["**/*.test.ts", "**/*.integration.ts"],
+  "absolute": true
+}

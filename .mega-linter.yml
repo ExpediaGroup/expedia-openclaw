@@ -3,23 +3,18 @@
 APPLY_FIXES: all
 SHOW_ELAPSED_TIME: true
 
-# Exclude directories that should not be scanned
 EXCLUDES:
   - node_modules
   - dist
   - .npm_cache
   - .git
 
-# Disable specific linters that are redundant or too noisy for this initial phase
 DISABLE_LINTERS:
-  - REPOSITORY_GRYPE
-  - REPOSITORY_GITLEAKS
-  - REPOSITORY_CHECKOV
-  - COPYPASTE_JSCPD
+  # Spell checkers — too many false positives with project-specific terms and example URLs
   - SPELL_CSPELL
   - SPELL_LYCHEE
   - MARKDOWN_MARKDOWN_LINK_CHECK
-  - TYPESCRIPT_TS_STANDARD
-  - JSON_PRETTIER
-  - MARKDOWN_MARKDOWN_TABLE_FORMATTER
-  - YAML_V8R
+  # ts-standard conflicts with eslint config and can't parse integration/ files outside tsconfig
+  - TYPESCRIPT_STANDARD
+  # grype flags vulnerabilities in MegaLinter's own Go runtime, not our code
+  - REPOSITORY_GRYPE

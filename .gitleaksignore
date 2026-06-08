@@ -1,0 +1,2 @@
+# npm cache SHA hashes are flagged as sourcegraph-access-token false positives
+883b2e1a2b04cfeeb932391aec5cb69e7383526b:.npm_cache/_cacache/content-v2/sha512/0b/18/f296e55f425f32525c3325c5f86079feef3427c940dc59bafa5b5911b70b0c9a0ecad37513a53de907671874d610e1afa3f2229887c098ee20f3b74c8efc:sourcegraph-access-token:1
