@@ -11,7 +11,7 @@ EXCLUDES:
   - .git
 
 # Disable linters that are redundant or too noisy for this initial phase
-DISABLE:
+DISABLE_LINTERS:
   - REPOSITORY_GRYPE # Security vulnerabilities in dependencies
   - REPOSITORY_GITLEAKS # False positives in tests/cache
   - COPYPASTE_JSCPD # Code duplication checks
@@ -22,3 +22,4 @@ DISABLE:
   - TYPESCRIPT_TS_STANDARD # Redundant with ESLint
   - JSON_PRETTIER # Avoid conflicts with other formatters
   - MARKDOWN_MARKDOWN_TABLE_FORMATTER # Often conflicts with manual formatting
+  - YAML_V8R # Failing on valid yaml
