@@ -94,6 +94,60 @@ function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);
 }
 
+// --- Common validation helpers ---
+
+function validateAdults(adults: number): ValidationError | null {
+  if (adults < 1 || adults > 6) {
+    return {
+      field: "adults",
+      message: `adults must be 1-6 (got ${adults})`,
+    };
+  }
+  return null;
+}
+
+function validateChildrenAges(children_ages?: number[]): ValidationError | null {
+  if (children_ages) {
+    if (children_ages.length > 6) {
+      return {
+        field: "children_ages",
+        message: `Maximum 6 children (got ${children_ages.length})`,
+      };
+    }
+    for (const age of children_ages) {
+      if (age < 0 || age > 17) {
+        return {
+          field: "children_ages",
+          message: `Child age ${age} is invalid (must be 0-17)`,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function validatePriceRange(price_min?: number, price_max?: number): ValidationError | null {
+  if (price_min != null && price_max != null) {
+    if (price_min > price_max) {
+      return {
+        field: "filters.price",
+        message: `price_min (${price_min}) cannot exceed price_max (${price_max})`,
+      };
+    }
+  }
+  return null;
+}
+
+function validateLimit(limit: number | undefined, max: number): ValidationError | null {
+  if (limit != null && (limit < 1 || limit > max)) {
+    return {
+      field: "limit",
+      message: `limit must be 1-${max} (got ${limit})`,
+    };
+  }
+  return null;
+}
+
 // --- Stay search validation ---
 
 export function validateSearchStaysRequest(
@@ -144,29 +198,11 @@ export function validateSearchStaysRequest(
     };
   }
 
-  if (req.adults < 1 || req.adults > 6) {
-    return {
-      field: "adults",
-      message: `adults must be 1-6 (got ${req.adults})`,
-    };
-  }
+  const adultsErr = validateAdults(req.adults);
+  if (adultsErr) return adultsErr;
 
-  if (req.children_ages) {
-    if (req.children_ages.length > 6) {
-      return {
-        field: "children_ages",
-        message: `Maximum 6 children (got ${req.children_ages.length})`,
-      };
-    }
-    for (const age of req.children_ages) {
-      if (age < 0 || age > 17) {
-        return {
-          field: "children_ages",
-          message: `Child age ${age} is invalid (must be 0-17)`,
-        };
-      }
-    }
-  }
+  const childrenErr = validateChildrenAges(req.children_ages);
+  if (childrenErr) return childrenErr;
 
   if (req.filters?.star_rating) {
     const { min, max } = req.filters.star_rating;
@@ -178,21 +214,11 @@ export function validateSearchStaysRequest(
     }
   }
 
-  if (req.filters?.price_min != null && req.filters?.price_max != null) {
-    if (req.filters.price_min > req.filters.price_max) {
-      return {
-        field: "filters.price",
-        message: `price_min (${req.filters.price_min}) cannot exceed price_max (${req.filters.price_max})`,
-      };
-    }
-  }
+  const priceErr = validatePriceRange(req.filters?.price_min, req.filters?.price_max);
+  if (priceErr) return priceErr;
 
-  if (req.limit != null && (req.limit < 1 || req.limit > 100)) {
-    return {
-      field: "limit",
-      message: `limit must be 1-100 (got ${req.limit})`,
-    };
-  }
+  const limitErr = validateLimit(req.limit, 100);
+  if (limitErr) return limitErr;
 
   if (req.radius_km != null && (req.radius_km < 1 || req.radius_km > 200)) {
     return {
@@ -278,29 +304,11 @@ export function validateSearchFlightsRequest(
     }
   }
 
-  if (req.adults < 1 || req.adults > 6) {
-    return {
-      field: "adults",
-      message: `adults must be 1-6 (got ${req.adults})`,
-    };
-  }
+  const adultsErr = validateAdults(req.adults);
+  if (adultsErr) return adultsErr;
 
-  if (req.children_ages) {
-    if (req.children_ages.length > 6) {
-      return {
-        field: "children_ages",
-        message: `Maximum 6 children (got ${req.children_ages.length})`,
-      };
-    }
-    for (const age of req.children_ages) {
-      if (age < 0 || age > 17) {
-        return {
-          field: "children_ages",
-          message: `Child age ${age} is invalid (must be 0-17)`,
-        };
-      }
-    }
-  }
+  const childrenErr = validateChildrenAges(req.children_ages);
+  if (childrenErr) return childrenErr;
 
   if (req.infants_in_lap != null) {
     if (req.infants_in_lap < 0 || req.infants_in_lap > 2) {
@@ -331,21 +339,11 @@ export function validateSearchFlightsRequest(
     };
   }
 
-  if (req.filters?.price_min != null && req.filters?.price_max != null) {
-    if (req.filters.price_min > req.filters.price_max) {
-      return {
-        field: "filters.price",
-        message: `price_min (${req.filters.price_min}) cannot exceed price_max (${req.filters.price_max})`,
-      };
-    }
-  }
+  const priceErr = validatePriceRange(req.filters?.price_min, req.filters?.price_max);
+  if (priceErr) return priceErr;
 
-  if (req.limit != null && (req.limit < 1 || req.limit > 25)) {
-    return {
-      field: "limit",
-      message: `limit must be 1-25 (got ${req.limit})`,
-    };
-  }
+  const limitErr = validateLimit(req.limit, 25);
+  if (limitErr) return limitErr;
 
   return null;
 }
