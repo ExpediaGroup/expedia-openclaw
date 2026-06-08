@@ -249,6 +249,7 @@ describe("validateSearchFlightsRequest", () => {
 
   it("rejects unknown cabin class", () => {
     const err = validateSearchFlightsRequest(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       validFlightReq({ cabin_class: "COMFORT" as any }),
     );
     expect(err?.field).toBe("cabin_class");

@@ -31,7 +31,7 @@ function mockFetch(
   body: unknown,
   headers?: Record<string, string>,
 ): typeof globalThis.fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit) => {
+  return async (_input: RequestInfo | URL, _init?: RequestInit) => {
     return new Response(JSON.stringify(body), {
       status,
       headers: { "Content-Type": "application/json", ...headers },

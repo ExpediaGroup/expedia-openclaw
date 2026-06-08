@@ -5,8 +5,8 @@ Live hotel and flight search via the EG Travel Adapter.
 ## Install
 
 ```bash
-oc plugins install @expediagroup/expedia-openclaw``
-
+oc plugins install @expediagroup/expedia-travel-openclaw
+```
 ## Configuration
 
 In `~/.oc/oc.json`:

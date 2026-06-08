@@ -58,7 +58,7 @@ export type CodeResult =
   | { ok: false; error: string };
 
 export function sanitizeVerificationCode(raw: string): CodeResult {
-  const cleaned = raw.replace(/[\s\-]/g, "");
+  const cleaned = raw.replace(/[\s-]/g, "");
   if (!/^\d{6}$/.test(cleaned)) {
     return {
       ok: false,

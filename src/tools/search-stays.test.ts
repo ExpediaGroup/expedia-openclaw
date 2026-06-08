@@ -181,7 +181,7 @@ describe("search_stays tool", () => {
     });
 
     expect(fakeFetch).toHaveBeenCalledOnce();
-    const [url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [_url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(opts.body);
     expect(body.pos_country).toBe("US");
     expect(body.currency).toBe("USD");

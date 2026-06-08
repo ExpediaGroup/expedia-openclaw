@@ -135,6 +135,7 @@ describe("search_flights tool", () => {
       destination: "NRT",
       departure_date: tomorrow(),
       adults: 1,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cabin_class: "COMFORT" as any,
     });
 
@@ -168,7 +169,7 @@ describe("search_flights tool", () => {
     });
 
     expect(fakeFetch).toHaveBeenCalledOnce();
-    const [url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [_url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(opts.body);
     expect(body.pos_country).toBe("US");
     expect(body.currency).toBe("USD");

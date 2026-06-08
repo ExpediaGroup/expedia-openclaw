@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync, rmSync, renameSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
@@ -34,7 +34,6 @@ function writeCredentialToPath(credential: Record<string, unknown>): void {
   const tmpPath = join(CRED_DIR, `.eg-travel.tmp.${tmpSuffix}`);
   const json = JSON.stringify(credential, null, 2) + "\n";
   writeFileSync(tmpPath, json, { mode: 0o600 });
-  const { renameSync } = require("node:fs");
   renameSync(tmpPath, CRED_PATH);
 }
 
@@ -89,7 +88,6 @@ describe("credential store logic", () => {
   it("creates credential directory with restricted permissions", () => {
     writeCredentialToPath({ token: "t", tenant_id: "t", contact: "a@b.com", contact_method: "email", token_kind: "bearer" });
 
-    const { statSync } = require("node:fs");
     const dirStat = statSync(CRED_DIR);
     // 0o700 = owner rwx only
     expect(dirStat.mode & 0o777).toBe(0o700);
@@ -98,7 +96,6 @@ describe("credential store logic", () => {
   it("creates credential file with restricted permissions", () => {
     writeCredentialToPath({ token: "t", tenant_id: "t", contact: "a@b.com", contact_method: "email", token_kind: "bearer" });
 
-    const { statSync } = require("node:fs");
     const fileStat = statSync(CRED_PATH);
     // 0o600 = owner rw only
     expect(fileStat.mode & 0o777).toBe(0o600);
