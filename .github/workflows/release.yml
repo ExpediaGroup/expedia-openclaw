@@ -47,6 +47,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update dist/package.json version
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          cd dist
+          node -e "const p=require('./package.json'); p.version='${{ steps.semantic.outputs.new_release_version }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n')"
+
       - name: Install ClawHub CLI
         if: steps.semantic.outputs.new_release_published == 'true'
         run: npm i -g clawhub
@@ -55,7 +61,7 @@ jobs:
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
           clawhub login --token "$CLAWHUB_TOKEN" --no-browser
-          clawhub package publish . \
+          clawhub package publish dist/ \
             --family code-plugin \
             --version "v${{ steps.semantic.outputs.new_release_version }}" \
             --source-repo "${{ github.repository }}" \
