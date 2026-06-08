@@ -15,7 +15,11 @@ limitations under the License.
 */
 
 import { Type, type Static } from "@sinclair/typebox";
-import type { PluginConfig, SearchStaysRequest } from "../types.js";
+import type {
+  PluginConfig,
+  SearchStaysRequest,
+  InternalTool,
+} from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
 import { catchAdapterError } from "../errors.js";
 import { validateSearchStaysRequest } from "../validation.js";
@@ -73,7 +77,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createSearchStaysTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createSearchStaysTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+): InternalTool {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -91,7 +98,8 @@ export function createSearchStaysTool(config: PluginConfig, fetchFn?: typeof glo
       "is permitted ONLY if the user explicitly asks as a follow-up.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
+    async execute(input: unknown): Promise<ToolResult> {
+      const typedInput = input as Input;
       const credential = readCredential();
       if (!credential) {
         return toolTextResult(
@@ -101,10 +109,10 @@ export function createSearchStaysTool(config: PluginConfig, fetchFn?: typeof glo
       }
 
       const req: SearchStaysRequest = {
-        ...input,
-        destination: input.destination?.trim() ?? "",
-        pos_country: input.pos_country ?? config.default_pos_country,
-        currency: input.currency ?? config.default_currency,
+        ...typedInput,
+        destination: typedInput.destination?.trim() ?? "",
+        pos_country: typedInput.pos_country ?? config.default_pos_country,
+        currency: typedInput.currency ?? config.default_currency,
       };
 
       const validationError = validateSearchStaysRequest(req);

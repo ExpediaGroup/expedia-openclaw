@@ -42,7 +42,10 @@ function mockFetch(
 function capturingFetch(
   status: number,
   body: unknown,
-): { fetch: typeof globalThis.fetch; captured: () => { url: string; init: RequestInit } } {
+): {
+  fetch: typeof globalThis.fetch;
+  captured: () => { url: string; init: RequestInit };
+} {
   let capturedUrl = "";
   let capturedInit: RequestInit = {};
 

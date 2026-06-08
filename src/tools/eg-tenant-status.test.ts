@@ -86,9 +86,11 @@ describe("eg_tenant_status tool", () => {
   it("shows price watch counts", async () => {
     mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const fakeFetch = mockFetchJson(tenantResponse({
-      price_watches: { active: 0, total_created: 12 },
-    }));
+    const fakeFetch = mockFetchJson(
+      tenantResponse({
+        price_watches: { active: 0, total_created: 12 },
+      }),
+    );
 
     const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute();

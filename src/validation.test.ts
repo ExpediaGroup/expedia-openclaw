@@ -27,11 +27,17 @@ import type { SearchStaysRequest, SearchFlightsRequest } from "./types.js";
 
 describe("detectContactMethod", () => {
   it("detects email", () => {
-    expect(detectContactMethod("user@example.com")).toEqual({ ok: true, method: "email" });
+    expect(detectContactMethod("user@example.com")).toEqual({
+      ok: true,
+      method: "email",
+    });
   });
 
   it("detects phone in E.164", () => {
-    expect(detectContactMethod("+15551234567")).toEqual({ ok: true, method: "phone" });
+    expect(detectContactMethod("+15551234567")).toEqual({
+      ok: true,
+      method: "phone",
+    });
   });
 
   it("rejects empty contact", () => {
@@ -62,12 +68,21 @@ describe("detectContactMethod", () => {
 
 describe("sanitizeVerificationCode", () => {
   it("accepts 6 digits", () => {
-    expect(sanitizeVerificationCode("123456")).toEqual({ ok: true, code: "123456" });
+    expect(sanitizeVerificationCode("123456")).toEqual({
+      ok: true,
+      code: "123456",
+    });
   });
 
   it("strips dashes and spaces", () => {
-    expect(sanitizeVerificationCode("123-456")).toEqual({ ok: true, code: "123456" });
-    expect(sanitizeVerificationCode("12 34 56")).toEqual({ ok: true, code: "123456" });
+    expect(sanitizeVerificationCode("123-456")).toEqual({
+      ok: true,
+      code: "123456",
+    });
+    expect(sanitizeVerificationCode("12 34 56")).toEqual({
+      ok: true,
+      code: "123456",
+    });
   });
 
   it("rejects too few digits", () => {
@@ -85,7 +100,9 @@ describe("sanitizeVerificationCode", () => {
 
 // --- Stay search validation ---
 
-function validStayReq(overrides: Partial<SearchStaysRequest> = {}): SearchStaysRequest {
+function validStayReq(
+  overrides: Partial<SearchStaysRequest> = {},
+): SearchStaysRequest {
   const tomorrow = new Date();
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const dayAfter = new Date(tomorrow);
@@ -113,7 +130,9 @@ describe("validateSearchStaysRequest", () => {
   });
 
   it("rejects invalid date format", () => {
-    const err = validateSearchStaysRequest(validStayReq({ check_in: "2026/06/01" }));
+    const err = validateSearchStaysRequest(
+      validStayReq({ check_in: "2026/06/01" }),
+    );
     expect(err?.field).toBe("check_in");
   });
 
@@ -142,12 +161,18 @@ describe("validateSearchStaysRequest", () => {
   });
 
   it("rejects invalid adult count", () => {
-    expect(validateSearchStaysRequest(validStayReq({ adults: 0 }))?.field).toBe("adults");
-    expect(validateSearchStaysRequest(validStayReq({ adults: 8 }))?.field).toBe("adults");
+    expect(validateSearchStaysRequest(validStayReq({ adults: 0 }))?.field).toBe(
+      "adults",
+    );
+    expect(validateSearchStaysRequest(validStayReq({ adults: 8 }))?.field).toBe(
+      "adults",
+    );
   });
 
   it("rejects invalid child age", () => {
-    const err = validateSearchStaysRequest(validStayReq({ children_ages: [5, 19] }));
+    const err = validateSearchStaysRequest(
+      validStayReq({ children_ages: [5, 19] }),
+    );
     expect(err?.field).toBe("children_ages");
     expect(err?.message).toContain("19");
   });
@@ -171,23 +196,27 @@ describe("validateSearchStaysRequest", () => {
   });
 
   it("rejects limit above the 100 upper bound", () => {
-    expect(validateSearchStaysRequest(validStayReq({ limit: 101 }))?.field).toBe("limit");
+    expect(
+      validateSearchStaysRequest(validStayReq({ limit: 101 }))?.field,
+    ).toBe("limit");
   });
 
   it("accepts radius_km in range", () => {
-    expect(validateSearchStaysRequest(validStayReq({ radius_km: 25 }))).toBeNull();
+    expect(
+      validateSearchStaysRequest(validStayReq({ radius_km: 25 })),
+    ).toBeNull();
   });
 
   it("rejects radius_km above 200", () => {
-    expect(validateSearchStaysRequest(validStayReq({ radius_km: 201 }))?.field).toBe(
-      "radius_km",
-    );
+    expect(
+      validateSearchStaysRequest(validStayReq({ radius_km: 201 }))?.field,
+    ).toBe("radius_km");
   });
 
   it("rejects radius_km below 1", () => {
-    expect(validateSearchStaysRequest(validStayReq({ radius_km: 0 }))?.field).toBe(
-      "radius_km",
-    );
+    expect(
+      validateSearchStaysRequest(validStayReq({ radius_km: 0 }))?.field,
+    ).toBe("radius_km");
   });
 });
 

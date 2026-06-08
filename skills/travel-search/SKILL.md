@@ -19,15 +19,15 @@ When the user asks about hotels, vacation rentals, accommodations, or "places to
 
 If a search returns an `unauthorized` error (or any auth-shaped failure), the plugin isn't configured yet. Walk the user through signup:
 
-1. **Tell the user what's happening:** *"Looks like EG Travel isn't set up yet. I can take care of that — what email should I use?"*
+1. **Tell the user what's happening:** _"Looks like EG Travel isn't set up yet. I can take care of that — what email should I use?"_
 
 2. **Once they answer, call `eg_travel_signup({email: "..."})`.** This sends them a 6-digit code.
 
-3. **Tell them to check their inbox:** *"Sent! Check **{email}** for a 6-digit code — paste those six digits back here when you have them. The code expires in 2 minutes."*
+3. **Tell them to check their inbox:** _"Sent! Check **{email}** for a 6-digit code — paste those six digits back here when you have them. The code expires in 2 minutes."_
 
 4. **When they paste the code** (six digits, possibly with stray spaces — that's fine, the tool strips them), **call `eg_travel_verify({email: "...", code: "..."})`.** The tool exchanges the code for an API token and saves it automatically. **You never see the token. The user never sees the token.**
 
-5. **Confirm setup worked:** *"You're set up with a search quota of {quota} per hour. Want me to run that search now?"*
+5. **Confirm setup worked:** _"You're set up with a search quota of {quota} per hour. Want me to run that search now?"_
 
 6. **Then run their original query** with `search_stays` or `search_flights`.
 
@@ -35,7 +35,7 @@ If a search returns an `unauthorized` error (or any auth-shaped failure), the pl
 
 If a search returns `unauthorized`, `token_expired`, or any other auth-shaped failure, the user's previous token has aged out from inactivity. The plugin already knows their email — **don't ask for it again**. Send a fresh code automatically:
 
-1. **Tell the user what happened, briefly:** *"Your EG Travel access expired because you haven't searched in a while. I'll send a fresh code to **{email}** — paste the 6 digits back here."*
+1. **Tell the user what happened, briefly:** _"Your EG Travel access expired because you haven't searched in a while. I'll send a fresh code to **{email}** — paste the 6 digits back here."_
 
    The email is available from the tool's error context (look for `details.contact`) or from the cached credential file. Do NOT ask the user "what was your email again?"
 
@@ -49,22 +49,23 @@ The whole re-auth detour should feel like a 30-second pause, not a setup ritual.
 
 ## Setup edge cases
 
-- **`eg_travel_verify` returns `code_invalid`:** *"That code didn't match. You have {attempts_remaining} tries left. Could you double-check — it's a 6-digit number from EG Travel."* Wait for them to retry.
-- **`eg_travel_verify` returns `code_expired`:** *"That code already expired (2 min limit). I'll send a fresh one."* Then call `eg_travel_signup` again with the same email.
-- **`eg_travel_verify` returns `code_attempts_exceeded`:** *"Too many wrong codes — that one's locked. Sending a fresh code now."* Then call `eg_travel_signup` again with the same email.
-- **`eg_travel_signup` returns `disposable_email`:** *"That email provider isn't accepted. Could you use a different email?"*
-- **`eg_travel_signup` returns `invalid_email`:** *"That doesn't look like a valid email. Could you double-check it?"*
-- **`eg_travel_signup` returns `signup_rate_limited`:** *"Too many signup attempts in the last day. Try again in {N} minutes, or use a different email."*
-- **The user pastes something that isn't 6 digits** (a token, a date, a phrase): *"I just need the 6-digit code — six numbers, like 473829. Could you copy just that part?"*
+- **`eg_travel_verify` returns `code_invalid`:** _"That code didn't match. You have {attempts_remaining} tries left. Could you double-check — it's a 6-digit number from EG Travel."_ Wait for them to retry.
+- **`eg_travel_verify` returns `code_expired`:** _"That code already expired (2 min limit). I'll send a fresh one."_ Then call `eg_travel_signup` again with the same email.
+- **`eg_travel_verify` returns `code_attempts_exceeded`:** _"Too many wrong codes — that one's locked. Sending a fresh code now."_ Then call `eg_travel_signup` again with the same email.
+- **`eg_travel_signup` returns `disposable_email`:** _"That email provider isn't accepted. Could you use a different email?"_
+- **`eg_travel_signup` returns `invalid_email`:** _"That doesn't look like a valid email. Could you double-check it?"_
+- **`eg_travel_signup` returns `signup_rate_limited`:** _"Too many signup attempts in the last day. Try again in {N} minutes, or use a different email."_
+- **The user pastes something that isn't 6 digits** (a token, a date, a phrase): _"I just need the 6-digit code — six numbers, like 473829. Could you copy just that part?"_
 - **The user gives up halfway through:** That's fine. Tell them they can come back later — the next time they ask, you'll pick up where you left off.
 
 ---
 
-# Lodging: `search_stays`
+## Lodging: `search_stays`
 
 ## When to use search_stays
 
 Triggers include:
+
 - "Find me a hotel in X"
 - "What's a good place to stay in Y?"
 - "Compare hotels for these dates"
@@ -82,7 +83,7 @@ Triggers include:
    - `check_in` and `check_out` (YYYY-MM-DD)
    - `adults` (number of adult guests)
 
-2. **Ask for missing required fields** before calling the tool. Don't guess dates. Don't assume party size. A typical follow-up: *"What dates are you looking at, and how many guests?"*
+2. **Ask for missing required fields** before calling the tool. Don't guess dates. Don't assume party size. A typical follow-up: _"What dates are you looking at, and how many guests?"_
 
 3. **Set `hotel_name`** when the user asks about a specific property or chain by name — e.g., "Is the Four Seasons available?", "Find me a Hilton in Seattle." This searches across hotel name, description, address, and amenities. It can be combined with `destination` to narrow results within a city, or used alone. Do NOT put the hotel name in the `destination` field — that's for locations only. When you set `hotel_name`, also pass `limit: 100` (see below).
 
@@ -122,11 +123,12 @@ Triggers include:
 ## Output format — lodging
 
 For each recommendation, include:
+
 - **Property name** (and star rating if returned).
 - **Total price (`price.amount_total_inclusive`), USD-labeled, is the ONLY price you display by default** (e.g., `US$691.97 · Total`). This is the true all-in number — base rate + Expedia-collected taxes/fees + hotel-collected mandatory fees (resort, cleaning, city/tourism tax, etc.) for the full stay. Always label as **"Total"**. This is independent of how the user framed their query — even if they asked for "hotels under $350 per night," you still display only the inclusive total:
-  - If `price.amount_total_inclusive` is `null`, `undefined`, or `0`, do NOT display a price line. Replace it with: *"Pricing shown on Expedia at booking — tap the link below."* Always include the deeplink.
+  - If `price.amount_total_inclusive` is `null`, `undefined`, or `0`, do NOT display a price line. Replace it with: _"Pricing shown on Expedia at booking — tap the link below."_ Always include the deeplink.
   - Do NOT use `price.amount_total` for display — that field excludes hotel-collected mandatory fees and is not California-compliant on its own. Always use `amount_total_inclusive`.
-  - Ignore `price.taxes_included`. It only flags whether taxes are bundled into the *base rate* (almost always `false`); it does NOT mean the inclusive total is tax-exclusive. `amount_total_inclusive` is always all-in.
+  - Ignore `price.taxes_included`. It only flags whether taxes are bundled into the _base rate_ (almost always `false`); it does NOT mean the inclusive total is tax-exclusive. `amount_total_inclusive` is always all-in.
 - **DO NOT display the per-night price in the initial response.** This is a California disclosure compliance requirement, not a stylistic preference. Only show `price.amount_per_night` when the user explicitly requests it as a follow-up (e.g., "what's that per night?", "show me the nightly rate", "break that down per night"). Per-night framing in the user's original query is a filter constraint, not a display directive — comply with the filter silently and still show only the inclusive total.
 - **Aggregate review score AND total review count** (e.g., `9.2/10 (1,456 reviews)`). Count is required, not optional.
 - **Cancellation status:**
@@ -138,6 +140,7 @@ For each recommendation, include:
 ### Vrbo / vacation rentals
 
 When `property_type` is `VR` (or otherwise indicates a vacation rental), in addition to the above include:
+
 - **Number of bedrooms** and **number of bathrooms** when returned.
 - A **"Private host"** label when the property is hosted by a private individual rather than a managed entity.
 
@@ -148,25 +151,27 @@ When you present hotel results, include these two pieces somewhere in the same r
 1. The verbatim disclosure: **"Prices may change based on availability and are not final until you complete your purchase."**
 2. The sort-order link: **"How Expedia's sort order works"** → `https://www.expedia.com/lp/b/sort-order-info`
 
-If the user did not provide dates, also disclose the assumed dates once: *"These prices are based on a [N]-night stay starting on [date]."*
+If the user did not provide dates, also disclose the assumed dates once: _"These prices are based on a [N]-night stay starting on [date]."_
 
 ### Property photos
 
 Each lodging result includes a `thumbnail_url` — the plugin automatically upgrades the Expedia CDN tiny suffix (`_t`, 70x70) to medium (`_y`, ~500px wide) so the URL is card-sized when you render it. Use it when the presentation context benefits from images:
 
 **Include images when:**
+
 - Writing to a rich canvas or document (Notion, markdown preview, web UI)
 - Showing a single property in detail (one image is fine even in chat)
 - The user explicitly asks to "show me" or "what does it look like"
 
 **Skip images when:**
+
 - Listing multiple properties in a chat-style channel (iMessage, SMS, Slack DMs) — images interspersed with text create a noisy sequence of separate messages
 - The user is doing a quick price comparison and doesn't need visuals
 - The channel doesn't render markdown images
 
 When including a photo, use markdown image syntax with the property name as alt text:
 
-```
+```markdown
 ![The Ludlow Hotel](https://images.trvl-media.com/lodging/12345678/abc123_y.jpg)
 ```
 
@@ -181,14 +186,14 @@ All examples below show `price.amount_total_inclusive` labeled **"Total"** — t
 > **The Ludlow Hotel** ⭐ 4.0 · 8.7/10 (1,842 reviews)
 > **US$2,125** · Total
 > Boutique luxury on the Lower East Side. Free cancellation until check-in.
-> 👉 https://expedia.com/r/abc123def456
+> 👉 <https://expedia.com/r/abc123def456>
 
 **Chat context (multi-property list):**
 
 > **The Ludlow Hotel** ⭐ 4.0 · 8.7/10 (1,842 reviews)
 > **US$2,125** · Total
 > Boutique luxury on the Lower East Side. Free cancellation until check-in.
-> 👉 https://expedia.com/r/abc123def456
+> 👉 <https://expedia.com/r/abc123def456>
 
 **Vrbo / vacation rental:**
 
@@ -196,13 +201,13 @@ All examples below show `price.amount_total_inclusive` labeled **"Total"** — t
 > 2 bedrooms · 1 bathroom · sleeps 4
 > **US$987** · Total
 > Walkable Capitol Hill location, full kitchen, parking included.
-> 👉 https://expedia.com/r/vrbo789xyz
+> 👉 <https://expedia.com/r/vrbo789xyz>
 
 **End of any lodging results reply (verbatim, once):**
 
 > Prices may change based on availability and are not final until you complete your purchase.
 >
-> How Expedia's sort order works → https://www.expedia.com/lp/b/sort-order-info
+> How Expedia's sort order works → <https://www.expedia.com/lp/b/sort-order-info>
 
 **Follow-up: only if the user explicitly asks for the per-night rate** (e.g., "what's that per night?", "show me the nightly", "break that down"):
 
@@ -212,11 +217,12 @@ Do NOT volunteer the per-night rate without an explicit user request, even if th
 
 ---
 
-# Flights: `search_flights`
+## Flights: `search_flights`
 
 ## When to use search_flights
 
 Triggers include:
+
 - "Find me a flight from X to Y"
 - "What flights are available on {date}"
 - "Cheapest flights to Tokyo next month"
@@ -249,6 +255,7 @@ State **"Round-trip flights"** or **"One-way flights"** at the top, then for eac
 8. **[View on Expedia](deeplink_url)** — use the API-provided URL only.
 
 Additional flight rules:
+
 - If operating carrier differs from marketing carrier in segments, disclose: `"Operated by [carrier]"`.
 - If the user asked for bags and `baggage_included` is `false`, note that bags can be added at extra cost.
 - If multiple fare types may be available, mention: `"Other fare options may be available"`.
@@ -259,15 +266,17 @@ Additional flight rules:
 ### Required boilerplate (once per flights result set)
 
 Append verbatim after the results:
+
 > **The total includes taxes, fees and any Expedia charges.**
 > **Prices may change based on availability and are not final until you complete your purchase. You can review any additional fees before checkout.**
 
 When results are sorted, also include:
+
 > **How Expedia's sort order works** → `https://www.expedia.com/lp/b/sort-order-info`
 
 ---
 
-# Critical rules (cross-cutting)
+## Critical rules (cross-cutting)
 
 - **NEVER use web_search, web_fetch, or browser for travel queries.** They return stale or empty data because travel sites render prices in JavaScript.
 - **NEVER construct your own booking URLs.** Always use the `deeplink_url` returned by the tools. URLs you construct from training data may be invalid or out of date.
@@ -279,28 +288,28 @@ When results are sorted, also include:
 - **NEVER use urgency, countdowns, or unqualified superlatives.** `"Going fast,"` `"lowest,"` `"best,"` `"best picks,"` `"best deal,"` `"cheapest"` require an `"on Expedia"` qualifier (e.g., `"the cheapest on Expedia"`, `"the best option on Expedia"`) or must be omitted. Do NOT claim options or any specific options as "the best", "the best pick", or "preferred" without explicit qualification or substantiation.
 - **NEVER mention competing booking services** (Booking.com, Hotels.com, Airbnb, Kayak, Google Hotels, Trivago, Kiwi, Skyscanner, etc.) in a reply that includes Expedia results.
 - **NEVER omit the required boilerplate.** The verbatim disclosure and the sort-order link must each appear once per results reply.
-- **For dateless searches**, always disclose the assumed dates: *"These prices are based on a [N]-night stay starting on [date]."* or *"These prices are based on a {date} departure."*
+- **For dateless searches**, always disclose the assumed dates: _"These prices are based on a [N]-night stay starting on [date]."_ or _"These prices are based on a {date} departure."_
 - **The data is live but cached.** Tool results include `cached_at` and `cache_ttl_seconds`. If the user asks how fresh the data is, share that timestamp. If they need absolute real-time pricing (about to book), recommend they tap the deeplink_url.
 - **Respect rate limits.** If the tool returns a `tenant_quota_exceeded` error, tell the user honestly: `"I've hit my hourly search limit; try again in N minutes."` Don't fall back to scraping.
 
 ---
 
-# Handling errors
+## Handling errors
 
 The tools can return structured errors. Handle them like this:
 
-| Error code | What to tell the user |
-|------------|----------------------|
-| `unauthorized` | If a credential exists locally (the plugin will surface a cached contact), treat this as **token expired** and run the re-authentication flow above. If no credential exists, run the first-time setup flow. |
-| `token_expired` | Run the **re-authentication** flow — do NOT ask the user for their contact, it's already cached. |
-| `missing_field` | Ask for the missing field by name. |
-| `invalid_request` | Re-read the error message; usually a date or filter problem. Fix and retry. |
-| `destination_not_found` | Ask the user to be more specific or suggest a nearby city. |
-| `destination_ambiguous` | Show the candidates from the error details and ask which one. |
-| `tenant_quota_exceeded` | "I've hit my search rate limit. Try again in {retry_after_seconds/60} minutes." |
-| `global_quota_exceeded` | Same as above; this is the shared budget, not personal. |
-| `tenant_suspended` | "My access to EG Travel has been suspended. You'll need to contact the operator to find out why." Optionally call `eg_tenant_status` to confirm. |
-| `upstream_error` / `upstream_timeout` | "The travel service is having trouble right now. Want me to try again in a minute?" |
-| `code_invalid` / `code_expired` / `code_attempts_exceeded` | See "Setup edge cases" above. |
+| Error code                                                 | What to tell the user                                                                                                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `unauthorized`                                             | If a credential exists locally (the plugin will surface a cached contact), treat this as **token expired** and run the re-authentication flow above. If no credential exists, run the first-time setup flow. |
+| `token_expired`                                            | Run the **re-authentication** flow — do NOT ask the user for their contact, it's already cached.                                                                                                             |
+| `missing_field`                                            | Ask for the missing field by name.                                                                                                                                                                           |
+| `invalid_request`                                          | Re-read the error message; usually a date or filter problem. Fix and retry.                                                                                                                                  |
+| `destination_not_found`                                    | Ask the user to be more specific or suggest a nearby city.                                                                                                                                                   |
+| `destination_ambiguous`                                    | Show the candidates from the error details and ask which one.                                                                                                                                                |
+| `tenant_quota_exceeded`                                    | "I've hit my search rate limit. Try again in {retry_after_seconds/60} minutes."                                                                                                                              |
+| `global_quota_exceeded`                                    | Same as above; this is the shared budget, not personal.                                                                                                                                                      |
+| `tenant_suspended`                                         | "My access to EG Travel has been suspended. You'll need to contact the operator to find out why." Optionally call `eg_tenant_status` to confirm.                                                             |
+| `upstream_error` / `upstream_timeout`                      | "The travel service is having trouble right now. Want me to try again in a minute?"                                                                                                                          |
+| `code_invalid` / `code_expired` / `code_attempts_exceeded` | See "Setup edge cases" above.                                                                                                                                                                                |
 
 Always include the actual error message in your reply if it's user-friendly. Don't paraphrase technical errors into vagueness.

@@ -50,5 +50,8 @@ export function upgradeThumbnailUrl(
   url: string,
   targetSuffix: ImageSuffix = "_y",
 ): string {
-  return url.replace(SUFFIX_PATTERN, (_match, _letter, ext) => `${targetSuffix}.${ext}`);
+  return url.replace(
+    SUFFIX_PATTERN,
+    (_match: string, _letter: string, ext: string) => `${targetSuffix}.${ext}`,
+  );
 }

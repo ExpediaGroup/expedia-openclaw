@@ -55,7 +55,7 @@ export class AdapterClient {
       Accept: "application/json",
       "User-Agent": USER_AGENT,
     };
-    if (token) h["Authorization"] = `Bearer ${token}`;
+    if (token != null && token !== "") h["Authorization"] = `Bearer ${token}`;
     if (this.config.synthetic_mode) h["X-Adapter-Mode"] = "synthetic";
     return h;
   }
@@ -78,8 +78,13 @@ export class AdapterClient {
         signal: AbortSignal.timeout(this.config.request_timeout_ms),
       });
     } catch (err: unknown) {
-      const duration_ms = Date.now() - start;
-      logger.error("adapter network error", { method, path, duration_ms, error: err instanceof Error ? err.message : String(err) });
+      const durationMs = Date.now() - start;
+      logger.error("adapter network error", {
+        method,
+        path,
+        durationMs,
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new AdapterError(
         {
           code: "network_error",
@@ -90,16 +95,24 @@ export class AdapterClient {
       );
     }
 
-    const duration_ms = Date.now() - start;
+    const durationMs = Date.now() - start;
 
     let json: unknown;
     try {
       json = await res.json();
     } catch {
-      logger.error("adapter invalid json", { method, path, status: res.status, duration_ms });
+      logger.error("adapter invalid json", {
+        method,
+        path,
+        status: res.status,
+        durationMs,
+      });
       if (!res.ok) {
         throw new AdapterError(
-          { code: "internal_error", message: `HTTP ${res.status} with non-JSON body` },
+          {
+            code: "internal_error",
+            message: `HTTP ${res.status} with non-JSON body`,
+          },
           res.status,
         );
       }
@@ -112,7 +125,13 @@ export class AdapterClient {
     if (!res.ok) {
       const envelope = json as AdapterErrorEnvelope;
       const code = envelope?.error?.code ?? "internal_error";
-      logger.warn("adapter error response", { method, path, status: res.status, code, duration_ms });
+      logger.warn("adapter error response", {
+        method,
+        path,
+        status: res.status,
+        code,
+        durationMs,
+      });
       if (envelope?.error?.code) {
         throw new AdapterError(envelope.error, res.status);
       }
@@ -122,7 +141,12 @@ export class AdapterClient {
       );
     }
 
-    logger.info("adapter response", { method, path, status: res.status, duration_ms });
+    logger.info("adapter response", {
+      method,
+      path,
+      status: res.status,
+      durationMs,
+    });
     return json as T;
   }
 

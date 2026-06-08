@@ -34,7 +34,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createVerifyTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+) {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -49,7 +52,7 @@ export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalTh
       const emailErr = validateEmailInput(email);
       if (emailErr) return toolTextResult(emailErr);
 
-      const sanitized = sanitizeVerificationCode(input.code);
+      const sanitized = sanitizeVerificationCode(code);
       if (!sanitized.ok) {
         return toolTextResult(sanitized.error);
       }
