@@ -148,17 +148,15 @@ export interface SearchStaysResponse {
 
 // --- Search flights ---
 
-export type CabinClass =
-  | "ECONOMY"
-  | "PREMIUM_ECONOMY"
-  | "BUSINESS"
-  | "FIRST";
-export type FlightSort = "PRICE" | "DURATION";
+export type CabinClass = "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
+export type FlightSort = "CHEAPEST" | "FASTEST" | "BEST" | "MOST_EXPENSIVE";
 
 export interface FlightFilters {
   max_stops?: number;
-  airline_code?: string;
-  exclude_basic_economy?: boolean;
+  preferred_airlines?: string[];
+  max_duration_minutes?: number;
+  price_min?: number;
+  price_max?: number;
 }
 
 export interface SearchFlightsRequest {
@@ -225,7 +223,12 @@ export interface SearchFlightsResponse {
   destination: { code: string; label: string };
   departure_date: string;
   return_date?: string;
-  party: { adults: number; children: number; infants_lap: number; infants_seat: number };
+  party: {
+    adults: number;
+    children: number;
+    infants_lap: number;
+    infants_seat: number;
+  };
   currency: string;
   result_count: number;
   warnings: string[];
@@ -266,6 +269,17 @@ export interface AdapterErrorEnvelope {
 }
 
 // --- Health ---
+
+export interface InternalTool {
+  name: string;
+  label: string;
+  description: string;
+  inputSchema: unknown;
+  execute: (input: unknown) => Promise<{
+    content: { type: "text"; text: string }[];
+    details?: unknown;
+  }>;
+}
 
 export interface HealthResponse {
   status: "ok" | "degraded";

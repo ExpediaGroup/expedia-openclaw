@@ -1,7 +1,15 @@
 {
-  "name": "@expediagroup/expedia-openclaw",
+  "name": "@expediagroup/expedia-travel-openclaw",
   "version": "0.1.0",
   "description": "OpenClaw plugin for live hotel and flight search via Expedia Travel Adapter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ExpediaGroup/expedia-openclaw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ExpediaGroup/expedia-openclaw/issues"
+  },
+  "homepage": "https://github.com/ExpediaGroup/expedia-openclaw#readme",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +28,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "lint": "eslint src/",
+    "lint": "eslint src --ext .ts",
     "prepublishOnly": "npm run build && npm test"
   },
   "peerDependencies": {
@@ -46,11 +54,17 @@
     "access": "public"
   },
   "openclaw": {
-    "extensions": ["./dist/index.js"],
-    "compat": { "pluginApi": ">=2026.4.5" },
-    "build": { "openclawVersion": "2026.5.26" },
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.4.5"
+    },
+    "build": {
+      "openclawVersion": "2026.5.26"
+    },
     "install": {
-      "npmSpec": "@expediagroup/expedia-openclaw",
+      "npmSpec": "@expediagroup/expedia-travel-openclaw",
       "defaultChoice": "npm",
       "minHostVersion": ">=2026.4.5"
     },

@@ -14,7 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import type { ContactMethod, SearchStaysRequest, SearchFlightsRequest } from "./types.js";
+import type {
+  ContactMethod,
+  SearchStaysRequest,
+  SearchFlightsRequest,
+} from "./types.js";
 
 export interface ValidationError {
   field: string;
@@ -23,7 +27,14 @@ export interface ValidationError {
 
 // --- Contact validation ---
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function validateEmailInput(email: string): string | null {
+  if (!EMAIL_RE.test(email)) {
+    return `'${email}' is not a valid email address`;
+  }
+  return null;
+}
 const PHONE_E164_RE = /^\+\d{7,15}$/;
 
 export type ContactResult =
@@ -31,7 +42,7 @@ export type ContactResult =
   | { ok: false; error: string };
 
 export function detectContactMethod(contact: string): ContactResult {
-  if (!contact || contact.trim().length === 0) {
+  if (contact === "" || contact.trim().length === 0) {
     return { ok: false, error: "An email address or phone number is required" };
   }
   const trimmed = contact.trim();
@@ -72,14 +83,21 @@ export function sanitizeVerificationCode(raw: string): CodeResult {
 
 function parseDate(value: string, field: string): Date | ValidationError {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return { field, message: `${field} '${value}' must be in YYYY-MM-DD format` };
+    return {
+      field,
+      message: `${field} '${value}' must be in YYYY-MM-DD format`,
+    };
   }
   const d = new Date(value + "T00:00:00Z");
   if (isNaN(d.getTime())) {
     return { field, message: `${field} '${value}' is not a valid date` };
   }
   const [y, m, day] = value.split("-").map(Number);
-  if (d.getUTCFullYear() !== y || d.getUTCMonth() + 1 !== m || d.getUTCDate() !== day) {
+  if (
+    d.getUTCFullYear() !== y ||
+    d.getUTCMonth() + 1 !== m ||
+    d.getUTCDate() !== day
+  ) {
     return { field, message: `${field} '${value}' is not a valid date` };
   }
   return d;
@@ -87,11 +105,73 @@ function parseDate(value: string, field: string): Date | ValidationError {
 
 function todayUTC(): Date {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
 }
 
 function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+}
+
+// --- Common validation helpers ---
+
+function validateAdults(adults: number): ValidationError | null {
+  if (adults < 1 || adults > 6) {
+    return {
+      field: "adults",
+      message: `adults must be 1-6 (got ${adults})`,
+    };
+  }
+  return null;
+}
+
+function validateChildrenAges(childrenAges?: number[]): ValidationError | null {
+  if (childrenAges != null) {
+    if (childrenAges.length > 6) {
+      return {
+        field: "children_ages",
+        message: `Maximum 6 children (got ${childrenAges.length})`,
+      };
+    }
+    for (const age of childrenAges) {
+      if (age < 0 || age > 17) {
+        return {
+          field: "children_ages",
+          message: `Child age ${age} is invalid (must be 0-17)`,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function validatePriceRange(
+  priceMin?: number,
+  priceMax?: number,
+): ValidationError | null {
+  if (priceMin != null && priceMax != null) {
+    if (priceMin > priceMax) {
+      return {
+        field: "filters.price",
+        message: `price_min (${priceMin}) cannot exceed price_max (${priceMax})`,
+      };
+    }
+  }
+  return null;
+}
+
+function validateLimit(
+  limit: number | undefined,
+  max: number,
+): ValidationError | null {
+  if (limit != null && (limit < 1 || limit > max)) {
+    return {
+      field: "limit",
+      message: `limit must be 1-${max} (got ${limit})`,
+    };
+  }
+  return null;
 }
 
 // --- Stay search validation ---
@@ -144,31 +224,13 @@ export function validateSearchStaysRequest(
     };
   }
 
-  if (req.adults < 1 || req.adults > 6) {
-    return {
-      field: "adults",
-      message: `adults must be 1-6 (got ${req.adults})`,
-    };
-  }
+  const adultsErr = validateAdults(req.adults);
+  if (adultsErr != null) return adultsErr;
 
-  if (req.children_ages) {
-    if (req.children_ages.length > 6) {
-      return {
-        field: "children_ages",
-        message: `Maximum 6 children (got ${req.children_ages.length})`,
-      };
-    }
-    for (const age of req.children_ages) {
-      if (age < 0 || age > 17) {
-        return {
-          field: "children_ages",
-          message: `Child age ${age} is invalid (must be 0-17)`,
-        };
-      }
-    }
-  }
+  const childrenErr = validateChildrenAges(req.children_ages);
+  if (childrenErr != null) return childrenErr;
 
-  if (req.filters?.star_rating) {
+  if (req.filters?.star_rating != null) {
     const { min, max } = req.filters.star_rating;
     if (min != null && max != null && min > max) {
       return {
@@ -178,21 +240,14 @@ export function validateSearchStaysRequest(
     }
   }
 
-  if (req.filters?.price_min != null && req.filters?.price_max != null) {
-    if (req.filters.price_min > req.filters.price_max) {
-      return {
-        field: "filters.price",
-        message: `price_min (${req.filters.price_min}) cannot exceed price_max (${req.filters.price_max})`,
-      };
-    }
-  }
+  const priceErr = validatePriceRange(
+    req.filters?.price_min,
+    req.filters?.price_max,
+  );
+  if (priceErr != null) return priceErr;
 
-  if (req.limit != null && (req.limit < 1 || req.limit > 100)) {
-    return {
-      field: "limit",
-      message: `limit must be 1-100 (got ${req.limit})`,
-    };
-  }
+  const limitErr = validateLimit(req.limit, 100);
+  if (limitErr != null) return limitErr;
 
   if (req.radius_km != null && (req.radius_km < 1 || req.radius_km > 200)) {
     return {
@@ -258,7 +313,7 @@ export function validateSearchFlightsRequest(
     };
   }
 
-  if (req.return_date) {
+  if (req.return_date != null && req.return_date !== "") {
     const returnDate = parseDate(req.return_date, "return_date");
     if ("field" in returnDate) return returnDate;
 
@@ -278,29 +333,11 @@ export function validateSearchFlightsRequest(
     }
   }
 
-  if (req.adults < 1 || req.adults > 6) {
-    return {
-      field: "adults",
-      message: `adults must be 1-6 (got ${req.adults})`,
-    };
-  }
+  const adultsErr = validateAdults(req.adults);
+  if (adultsErr != null) return adultsErr;
 
-  if (req.children_ages) {
-    if (req.children_ages.length > 6) {
-      return {
-        field: "children_ages",
-        message: `Maximum 6 children (got ${req.children_ages.length})`,
-      };
-    }
-    for (const age of req.children_ages) {
-      if (age < 0 || age > 17) {
-        return {
-          field: "children_ages",
-          message: `Child age ${age} is invalid (must be 0-17)`,
-        };
-      }
-    }
-  }
+  const childrenErr = validateChildrenAges(req.children_ages);
+  if (childrenErr != null) return childrenErr;
 
   if (req.infants_in_lap != null) {
     if (req.infants_in_lap < 0 || req.infants_in_lap > 2) {
@@ -317,26 +354,31 @@ export function validateSearchFlightsRequest(
     }
   }
 
-  if (req.cabin_class && !VALID_CABIN_CLASSES.has(req.cabin_class)) {
+  if (req.cabin_class != null && !VALID_CABIN_CLASSES.has(req.cabin_class)) {
     return {
       field: "cabin_class",
       message: `Unknown cabin class '${req.cabin_class}'`,
     };
   }
 
-  if (req.filters?.max_stops != null && (req.filters.max_stops < 0 || req.filters.max_stops > 5)) {
+  if (
+    req.filters?.max_stops != null &&
+    (req.filters.max_stops < 0 || req.filters.max_stops > 3)
+  ) {
     return {
       field: "filters.max_stops",
-      message: `max_stops must be 0-5 (got ${req.filters.max_stops})`,
+      message: `max_stops must be 0-3 (got ${req.filters.max_stops})`,
     };
   }
 
-  if (req.limit != null && (req.limit < 1 || req.limit > 25)) {
-    return {
-      field: "limit",
-      message: `limit must be 1-25 (got ${req.limit})`,
-    };
-  }
+  const priceErr = validatePriceRange(
+    req.filters?.price_min,
+    req.filters?.price_max,
+  );
+  if (priceErr != null) return priceErr;
+
+  const limitErr = validateLimit(req.limit, 25);
+  if (limitErr != null) return limitErr;
 
   return null;
 }

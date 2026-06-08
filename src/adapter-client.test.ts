@@ -31,7 +31,7 @@ function mockFetch(
   body: unknown,
   headers?: Record<string, string>,
 ): typeof globalThis.fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit) => {
+  return async (_input: RequestInfo | URL, _init?: RequestInit) => {
     return new Response(JSON.stringify(body), {
       status,
       headers: { "Content-Type": "application/json", ...headers },
@@ -42,7 +42,10 @@ function mockFetch(
 function capturingFetch(
   status: number,
   body: unknown,
-): { fetch: typeof globalThis.fetch; captured: () => { url: string; init: RequestInit } } {
+): {
+  fetch: typeof globalThis.fetch;
+  captured: () => { url: string; init: RequestInit };
+} {
   let capturedUrl = "";
   let capturedInit: RequestInit = {};
 

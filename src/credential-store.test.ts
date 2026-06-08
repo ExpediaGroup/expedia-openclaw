@@ -15,7 +15,14 @@ limitations under the License.
 */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+  renameSync,
+  statSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
@@ -24,7 +31,10 @@ import { randomBytes } from "node:crypto";
 // because the module hardcodes ~/.oc/credentials paths. Instead we
 // replicate the read/write logic against a temp directory.
 
-const TEST_DIR = join(tmpdir(), `eg-travel-cred-test-${randomBytes(4).toString("hex")}`);
+const TEST_DIR = join(
+  tmpdir(),
+  `eg-travel-cred-test-${randomBytes(4).toString("hex")}`,
+);
 const CRED_DIR = join(TEST_DIR, "credentials");
 const CRED_PATH = join(CRED_DIR, "eg-travel.json");
 
@@ -34,7 +44,6 @@ function writeCredentialToPath(credential: Record<string, unknown>): void {
   const tmpPath = join(CRED_DIR, `.eg-travel.tmp.${tmpSuffix}`);
   const json = JSON.stringify(credential, null, 2) + "\n";
   writeFileSync(tmpPath, json, { mode: 0o600 });
-  const { renameSync } = require("node:fs");
   renameSync(tmpPath, CRED_PATH);
 }
 
@@ -78,8 +87,20 @@ describe("credential store logic", () => {
   });
 
   it("overwrites existing credential atomically", () => {
-    writeCredentialToPath({ token: "old", tenant_id: "t1", contact: "a@b.com", contact_method: "email", token_kind: "bearer" });
-    writeCredentialToPath({ token: "new", tenant_id: "t2", contact: "+15551234567", contact_method: "phone", token_kind: "bearer" });
+    writeCredentialToPath({
+      token: "old",
+      tenant_id: "t1",
+      contact: "a@b.com",
+      contact_method: "email",
+      token_kind: "bearer",
+    });
+    writeCredentialToPath({
+      token: "new",
+      tenant_id: "t2",
+      contact: "+15551234567",
+      contact_method: "phone",
+      token_kind: "bearer",
+    });
 
     const read = readCredentialFromPath();
     expect(read?.token).toBe("new");
@@ -87,18 +108,28 @@ describe("credential store logic", () => {
   });
 
   it("creates credential directory with restricted permissions", () => {
-    writeCredentialToPath({ token: "t", tenant_id: "t", contact: "a@b.com", contact_method: "email", token_kind: "bearer" });
+    writeCredentialToPath({
+      token: "t",
+      tenant_id: "t",
+      contact: "a@b.com",
+      contact_method: "email",
+      token_kind: "bearer",
+    });
 
-    const { statSync } = require("node:fs");
     const dirStat = statSync(CRED_DIR);
     // 0o700 = owner rwx only
     expect(dirStat.mode & 0o777).toBe(0o700);
   });
 
   it("creates credential file with restricted permissions", () => {
-    writeCredentialToPath({ token: "t", tenant_id: "t", contact: "a@b.com", contact_method: "email", token_kind: "bearer" });
+    writeCredentialToPath({
+      token: "t",
+      tenant_id: "t",
+      contact: "a@b.com",
+      contact_method: "email",
+      token_kind: "bearer",
+    });
 
-    const { statSync } = require("node:fs");
     const fileStat = statSync(CRED_PATH);
     // 0o600 = owner rw only
     expect(fileStat.mode & 0o777).toBe(0o600);

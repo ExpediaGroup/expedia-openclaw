@@ -16,29 +16,12 @@ limitations under the License.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createTenantStatusTool } from "./eg-tenant-status.js";
-import type { PluginConfig } from "../types.js";
+import { TEST_CONFIG, TEST_CREDENTIAL, mockFetchJson } from "./tool-test-helpers.js";
 
-vi.mock("../credential-store.js", () => ({
-  readCredential: vi.fn(),
-}));
+vi.mock("../credential-store.js");
 
 import { readCredential } from "../credential-store.js";
 const mockReadCredential = vi.mocked(readCredential);
-
-const config: PluginConfig = {
-  adapter_url: "http://localhost:19999",
-  default_pos_country: "US",
-  request_timeout_ms: 5000,
-  synthetic_mode: true,
-};
-
-const credential = {
-  token: "tok",
-  tenant_id: "t",
-  contact: "a@b.com",
-  contact_method: "email" as const,
-  token_kind: "bearer" as const,
-};
 
 function tenantResponse(overrides?: Record<string, unknown>) {
   return {
@@ -61,21 +44,13 @@ function tenantResponse(overrides?: Record<string, unknown>) {
   };
 }
 
-function mockFetchJson(body: unknown, status = 200): typeof globalThis.fetch {
-  return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(body),
-  });
-}
-
 describe("eg_tenant_status tool", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("exposes correct metadata", () => {
-    const tool = createTenantStatusTool(config);
+    const tool = createTenantStatusTool(TEST_CONFIG);
     expect(tool.name).toBe("eg_tenant_status");
     expect(tool.label).toBe("EG Travel Account Status");
     expect(tool.description).toContain("quota");
@@ -83,7 +58,7 @@ describe("eg_tenant_status tool", () => {
 
   it("returns signup prompt when no credentials", async () => {
     mockReadCredential.mockReturnValue(null);
-    const tool = createTenantStatusTool(config);
+    const tool = createTenantStatusTool(TEST_CONFIG);
 
     const result = await tool.execute();
 
@@ -92,10 +67,10 @@ describe("eg_tenant_status tool", () => {
   });
 
   it("returns account status on success", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson(tenantResponse());
-    const tool = createTenantStatusTool(config, fakeFetch);
+    const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute();
 
     expect(fakeFetch).toHaveBeenCalledOnce();
@@ -109,13 +84,15 @@ describe("eg_tenant_status tool", () => {
   });
 
   it("shows price watch counts", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const fakeFetch = mockFetchJson(tenantResponse({
-      price_watches: { active: 0, total_created: 12 },
-    }));
+    const fakeFetch = mockFetchJson(
+      tenantResponse({
+        price_watches: { active: 0, total_created: 12 },
+      }),
+    );
 
-    const tool = createTenantStatusTool(config, fakeFetch);
+    const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute();
 
     expect(result.content[0].text).toContain("0 active");
@@ -123,28 +100,28 @@ describe("eg_tenant_status tool", () => {
   });
 
   it("maps 401 to signup prompt", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson(
       { error: { code: "unauthorized", message: "Invalid token" } },
       401,
     );
 
-    const tool = createTenantStatusTool(config, fakeFetch);
+    const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute();
 
     expect(result.content[0].text).toContain("eg_travel_signup");
   });
 
   it("maps token_expired to re-auth prompt", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson(
       { error: { code: "token_expired", message: "Token expired" } },
       401,
     );
 
-    const tool = createTenantStatusTool(config, fakeFetch);
+    const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute();
 
     expect(result.content[0].text).toContain("eg_travel_signup");
@@ -152,10 +129,10 @@ describe("eg_tenant_status tool", () => {
   });
 
   it("sends correct authorization header", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson(tenantResponse());
-    const tool = createTenantStatusTool(config, fakeFetch);
+    const tool = createTenantStatusTool(TEST_CONFIG, fakeFetch);
     await tool.execute();
 
     const [url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];

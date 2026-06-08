@@ -16,28 +16,14 @@ limitations under the License.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createSearchStaysTool } from "./search-stays.js";
-import type { PluginConfig } from "../types.js";
+import {
+  TEST_CONFIG, TEST_CREDENTIAL, tomorrow, mockFetchJson, assertConfigDefaultsSent,
+} from "./tool-test-helpers.js";
 
-vi.mock("../credential-store.js", () => ({
-  readCredential: vi.fn(),
-}));
+vi.mock("../credential-store.js");
 
 import { readCredential } from "../credential-store.js";
 const mockReadCredential = vi.mocked(readCredential);
-
-const config: PluginConfig = {
-  adapter_url: "http://localhost:19999",
-  default_pos_country: "US",
-  default_currency: "USD",
-  request_timeout_ms: 5000,
-  synthetic_mode: true,
-};
-
-function tomorrow(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
 
 function dayAfterTomorrow(): string {
   const d = new Date();
@@ -45,19 +31,12 @@ function dayAfterTomorrow(): string {
   return d.toISOString().slice(0, 10);
 }
 
-const credential = {
-  token: "tok",
-  tenant_id: "t",
-  contact: "a@b.com",
-  contact_method: "email" as const,
-  token_kind: "bearer" as const,
-};
-
-function mockFetchJson(body: unknown, status = 200): typeof globalThis.fetch {
-  return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(body),
+function executeBasicSearch(tool: ReturnType<typeof createSearchStaysTool>) {
+  return tool.execute({
+    destination: "Tokyo",
+    check_in: tomorrow(),
+    check_out: dayAfterTomorrow(),
+    adults: 2,
   });
 }
 
@@ -67,7 +46,7 @@ describe("search_stays tool", () => {
   });
 
   it("exposes correct metadata", () => {
-    const tool = createSearchStaysTool(config);
+    const tool = createSearchStaysTool(TEST_CONFIG);
     expect(tool.name).toBe("search_stays");
     expect(tool.label).toBe("Search Stays");
     expect(tool.description).toContain("hotels");
@@ -75,40 +54,22 @@ describe("search_stays tool", () => {
 
   it("returns signup prompt when no credentials", async () => {
     mockReadCredential.mockReturnValue(null);
-    const tool = createSearchStaysTool(config);
-
-    const result = await tool.execute({
-      destination: "Tokyo",
-      check_in: tomorrow(),
-      check_out: dayAfterTomorrow(),
-      adults: 2,
-    });
+    const tool = createSearchStaysTool(TEST_CONFIG);
+    const result = await executeBasicSearch(tool);
 
     expect(result.content[0].text).toContain("eg_travel_signup");
     expect(result.content[0].text).toContain("No credentials");
   });
 
-  it("rejects empty destination without calling adapter", async () => {
-    mockReadCredential.mockReturnValue(credential);
+  it.each([
+    ["too short", "X"],
+    ["whitespace-only", "   "],
+  ])("rejects destination that is %s", async (_label, destination) => {
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchStaysTool(config);
+    const tool = createSearchStaysTool(TEST_CONFIG);
     const result = await tool.execute({
-      destination: "X",
-      check_in: tomorrow(),
-      check_out: dayAfterTomorrow(),
-      adults: 2,
-    });
-
-    expect(result.content[0].text).toContain("Validation error");
-    expect(result.content[0].text).toContain("destination");
-  });
-
-  it("rejects whitespace-only destination", async () => {
-    mockReadCredential.mockReturnValue(credential);
-
-    const tool = createSearchStaysTool(config);
-    const result = await tool.execute({
-      destination: "   ",
+      destination,
       check_in: tomorrow(),
       check_out: dayAfterTomorrow(),
       adults: 2,
@@ -119,9 +80,9 @@ describe("search_stays tool", () => {
   });
 
   it("rejects check_out before check_in", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchStaysTool(config);
+    const tool = createSearchStaysTool(TEST_CONFIG);
     const result = await tool.execute({
       destination: "Tokyo",
       check_in: dayAfterTomorrow(),
@@ -134,7 +95,7 @@ describe("search_stays tool", () => {
   });
 
   it("rejects stays longer than 30 nights", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const d1 = new Date();
     d1.setUTCDate(d1.getUTCDate() + 1);
@@ -142,7 +103,7 @@ describe("search_stays tool", () => {
     d2.setUTCDate(d2.getUTCDate() + 35);
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
-    const tool = createSearchStaysTool(config);
+    const tool = createSearchStaysTool(TEST_CONFIG);
     const result = await tool.execute({
       destination: "Tokyo",
       check_in: fmt(d1),
@@ -154,7 +115,7 @@ describe("search_stays tool", () => {
   });
 
   it("applies config defaults for pos_country and currency", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson({
       request_id: "r1",
@@ -172,7 +133,7 @@ describe("search_stays tool", () => {
       results: [],
     });
 
-    const tool = createSearchStaysTool(config, fakeFetch);
+    const tool = createSearchStaysTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute({
       destination: "Tokyo",
       check_in: tomorrow(),
@@ -180,29 +141,19 @@ describe("search_stays tool", () => {
       adults: 2,
     });
 
-    expect(fakeFetch).toHaveBeenCalledOnce();
-    const [url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    const body = JSON.parse(opts.body);
-    expect(body.pos_country).toBe("US");
-    expect(body.currency).toBe("USD");
-    expect(result.content[0].text).toContain("result_count");
+    assertConfigDefaultsSent(fakeFetch as ReturnType<typeof vi.fn>, result);
   });
 
   it("maps 401 to signup prompt", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson(
       { error: { code: "unauthorized", message: "Invalid token" } },
       401,
     );
 
-    const tool = createSearchStaysTool(config, fakeFetch);
-    const result = await tool.execute({
-      destination: "Tokyo",
-      check_in: tomorrow(),
-      check_out: dayAfterTomorrow(),
-      adults: 2,
-    });
+    const tool = createSearchStaysTool(TEST_CONFIG, fakeFetch);
+    const result = await executeBasicSearch(tool);
 
     expect(result.content[0].text).toContain("eg_travel_signup");
   });

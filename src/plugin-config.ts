@@ -30,37 +30,37 @@ export function readPluginConfig(raw: unknown): PluginConfig {
 
   const cfg = raw as Record<string, unknown>;
 
-  const adapter_url =
+  const adapterUrl =
     typeof cfg.adapter_url === "string" && cfg.adapter_url.length > 0
       ? cfg.adapter_url
       : DEFAULTS.adapter_url;
 
-  const default_pos_country =
+  const defaultPosCountry =
     typeof cfg.default_pos_country === "string" &&
     cfg.default_pos_country.length > 0
       ? cfg.default_pos_country
       : DEFAULTS.default_pos_country;
 
-  const default_currency =
+  const defaultCurrency =
     typeof cfg.default_currency === "string" && cfg.default_currency.length > 0
       ? cfg.default_currency
       : undefined;
 
-  let request_timeout_ms = DEFAULTS.request_timeout_ms;
+  let requestTimeoutMs = DEFAULTS.request_timeout_ms;
   if (typeof cfg.request_timeout_ms === "number") {
-    request_timeout_ms = Math.max(1000, Math.min(60_000, cfg.request_timeout_ms));
+    requestTimeoutMs = Math.max(1000, Math.min(60_000, cfg.request_timeout_ms));
   }
 
-  const synthetic_mode =
+  const syntheticMode =
     typeof cfg.synthetic_mode === "boolean"
       ? cfg.synthetic_mode
       : DEFAULTS.synthetic_mode;
 
   return {
-    adapter_url,
-    default_pos_country,
-    default_currency,
-    request_timeout_ms,
-    synthetic_mode,
+    adapter_url: adapterUrl,
+    default_pos_country: defaultPosCountry,
+    default_currency: defaultCurrency,
+    request_timeout_ms: requestTimeoutMs,
+    synthetic_mode: syntheticMode,
   };
 }

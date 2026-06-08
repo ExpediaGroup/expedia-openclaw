@@ -18,11 +18,9 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { PluginConfig } from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
 import { AdapterError, formatErrorForModel } from "../errors.js";
-import { sanitizeVerificationCode } from "../validation.js";
+import { validateEmailInput, sanitizeVerificationCode } from "../validation.js";
 import { writeCredential } from "../credential-store.js";
 import { toolTextResult, type ToolResult } from "../tool-result.js";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const InputSchema = Type.Object({
   email: Type.String({
@@ -36,7 +34,10 @@ const InputSchema = Type.Object({
 
 type Input = Static<typeof InputSchema>;
 
-export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createVerifyTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+) {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -46,13 +47,13 @@ export function createVerifyTool(config: PluginConfig, fetchFn?: typeof globalTh
       "Complete signup by exchanging the temporary verification code for an API token.",
     inputSchema: InputSchema,
 
-    async execute(input: Input): Promise<ToolResult> {
-      const email = input.email.trim();
-      if (!EMAIL_RE.test(email)) {
-        return toolTextResult(`'${email}' is not a valid email address`);
-      }
+    async execute(input: unknown): Promise<ToolResult> {
+      const typedInput = input as Input;
+      const email = typedInput.email.trim();
+      const emailErr = validateEmailInput(email);
+      if (emailErr) return toolTextResult(emailErr);
 
-      const sanitized = sanitizeVerificationCode(input.code);
+      const sanitized = sanitizeVerificationCode(typedInput.code);
       if (!sanitized.ok) {
         return toolTextResult(sanitized.error);
       }

@@ -16,11 +16,14 @@ limitations under the License.
 
 import type { PluginConfig } from "../types.js";
 import { AdapterClient } from "../adapter-client.js";
-import { AdapterError, formatErrorForModel } from "../errors.js";
+import { catchAdapterError } from "../errors.js";
 import { readCredential } from "../credential-store.js";
 import { toolTextResult, type ToolResult } from "../tool-result.js";
 
-export function createTenantStatusTool(config: PluginConfig, fetchFn?: typeof globalThis.fetch) {
+export function createTenantStatusTool(
+  config: PluginConfig,
+  fetchFn?: typeof globalThis.fetch,
+) {
   const client = new AdapterClient(config, fetchFn);
 
   return {
@@ -53,15 +56,10 @@ export function createTenantStatusTool(config: PluginConfig, fetchFn?: typeof gl
 
         return toolTextResult(lines.join("\n"));
       } catch (err) {
-        if (err instanceof AdapterError) {
-          return toolTextResult(
-            formatErrorForModel(err, config.adapter_url, {
-              contact: credential.contact,
-              contact_method: credential.contact_method,
-            }),
-          );
-        }
-        throw err;
+        return catchAdapterError(err, config.adapter_url, {
+          contact: credential.contact,
+          contact_method: credential.contact_method,
+        });
       }
     },
   };

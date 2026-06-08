@@ -14,21 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { createClient, adapterAvailable, ADAPTER_URL } from "./setup.js";
+import { describe, it, expect } from "vitest";
+import { createClient, setupAvailabilityCheck } from "./setup.js";
 
-let available = false;
-
-beforeAll(async () => {
-  available = await adapterAvailable();
-  if (!available) {
-    console.log(`Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`);
-  }
-});
+const { isAvailable } = setupAvailabilityCheck();
 
 describe("tenant status (synthetic)", () => {
   it("returns tenant info for a valid token", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.tenantMe("synthetic-token");
@@ -47,7 +40,7 @@ describe("tenant status (synthetic)", () => {
   });
 
   it("rejects unauthenticated requests", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     try {

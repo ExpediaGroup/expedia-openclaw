@@ -16,44 +16,14 @@ limitations under the License.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createSearchFlightsTool } from "./search-flights.js";
-import type { PluginConfig } from "../types.js";
+import {
+  TEST_CONFIG, TEST_CREDENTIAL, tomorrow, mockFetchJson, assertConfigDefaultsSent,
+} from "./tool-test-helpers.js";
 
-vi.mock("../credential-store.js", () => ({
-  readCredential: vi.fn(),
-}));
+vi.mock("../credential-store.js");
 
 import { readCredential } from "../credential-store.js";
 const mockReadCredential = vi.mocked(readCredential);
-
-const config: PluginConfig = {
-  adapter_url: "http://localhost:19999",
-  default_pos_country: "US",
-  default_currency: "USD",
-  request_timeout_ms: 5000,
-  synthetic_mode: true,
-};
-
-function tomorrow(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
-
-const credential = {
-  token: "tok",
-  tenant_id: "t",
-  contact: "a@b.com",
-  contact_method: "email" as const,
-  token_kind: "bearer" as const,
-};
-
-function mockFetchJson(body: unknown, status = 200): typeof globalThis.fetch {
-  return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(body),
-  });
-}
 
 describe("search_flights tool", () => {
   beforeEach(() => {
@@ -61,7 +31,7 @@ describe("search_flights tool", () => {
   });
 
   it("exposes correct metadata", () => {
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
     expect(tool.name).toBe("search_flights");
     expect(tool.label).toBe("Search Flights");
     expect(tool.description).toContain("flights");
@@ -69,7 +39,7 @@ describe("search_flights tool", () => {
 
   it("returns signup prompt when no credentials", async () => {
     mockReadCredential.mockReturnValue(null);
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
 
     const result = await tool.execute({
       origin: "SFO",
@@ -83,9 +53,9 @@ describe("search_flights tool", () => {
   });
 
   it("rejects same origin and destination", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
     const result = await tool.execute({
       origin: "SFO",
       destination: "sfo",
@@ -97,9 +67,9 @@ describe("search_flights tool", () => {
   });
 
   it("rejects whitespace-only origin", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
     const result = await tool.execute({
       origin: "   ",
       destination: "NRT",
@@ -112,9 +82,9 @@ describe("search_flights tool", () => {
   });
 
   it("rejects infants exceeding adults", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
     const result = await tool.execute({
       origin: "SFO",
       destination: "NRT",
@@ -127,14 +97,15 @@ describe("search_flights tool", () => {
   });
 
   it("rejects unknown cabin class", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
-    const tool = createSearchFlightsTool(config);
+    const tool = createSearchFlightsTool(TEST_CONFIG);
     const result = await tool.execute({
       origin: "SFO",
       destination: "NRT",
       departure_date: tomorrow(),
       adults: 1,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cabin_class: "COMFORT" as any,
     });
 
@@ -142,7 +113,7 @@ describe("search_flights tool", () => {
   });
 
   it("passes validation and sends request with config defaults", async () => {
-    mockReadCredential.mockReturnValue(credential);
+    mockReadCredential.mockReturnValue(TEST_CREDENTIAL);
 
     const fakeFetch = mockFetchJson({
       request_id: "r1",
@@ -159,7 +130,7 @@ describe("search_flights tool", () => {
       results: [],
     });
 
-    const tool = createSearchFlightsTool(config, fakeFetch);
+    const tool = createSearchFlightsTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute({
       origin: "SFO",
       destination: "NRT",
@@ -167,11 +138,6 @@ describe("search_flights tool", () => {
       adults: 1,
     });
 
-    expect(fakeFetch).toHaveBeenCalledOnce();
-    const [url, opts] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    const body = JSON.parse(opts.body);
-    expect(body.pos_country).toBe("US");
-    expect(body.currency).toBe("USD");
-    expect(result.content[0].text).toContain("result_count");
+    assertConfigDefaultsSent(fakeFetch as ReturnType<typeof vi.fn>, result);
   });
 });

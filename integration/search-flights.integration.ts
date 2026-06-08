@@ -14,23 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { createClient, adapterAvailable, ADAPTER_URL } from "./setup.js";
+import { describe, it, expect } from "vitest";
+import { createClient, setupAvailabilityCheck, tomorrow } from "./setup.js";
 
-let available = false;
-
-beforeAll(async () => {
-  available = await adapterAvailable();
-  if (!available) {
-    console.log(`Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`);
-  }
-});
-
-function tomorrow(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
+const { isAvailable } = setupAvailabilityCheck();
 
 function fiveDaysOut(): string {
   const d = new Date();
@@ -40,7 +27,7 @@ function fiveDaysOut(): string {
 
 describe("search flights (synthetic)", () => {
   it("returns synthetic results for a one-way flight", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchFlights("synthetic-token", {
@@ -60,7 +47,7 @@ describe("search flights (synthetic)", () => {
   });
 
   it("returns results for a round-trip flight", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchFlights("synthetic-token", {
@@ -77,7 +64,7 @@ describe("search flights (synthetic)", () => {
   });
 
   it("returns results with expected structure", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchFlights("synthetic-token", {
@@ -103,7 +90,7 @@ describe("search flights (synthetic)", () => {
   });
 
   it("respects limit parameter", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchFlights("synthetic-token", {
@@ -118,7 +105,7 @@ describe("search flights (synthetic)", () => {
   });
 
   it("includes synthetic flag in response", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchFlights("synthetic-token", {

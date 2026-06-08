@@ -14,23 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { createClient, adapterAvailable, ADAPTER_URL } from "./setup.js";
+import { describe, it, expect } from "vitest";
+import { createClient, setupAvailabilityCheck, tomorrow } from "./setup.js";
 
-let available = false;
-
-beforeAll(async () => {
-  available = await adapterAvailable();
-  if (!available) {
-    console.log(`Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`);
-  }
-});
-
-function tomorrow(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
+const { isAvailable } = setupAvailabilityCheck();
 
 function threeDaysOut(): string {
   const d = new Date();
@@ -40,7 +27,7 @@ function threeDaysOut(): string {
 
 describe("search stays (synthetic)", () => {
   it("returns synthetic results for a basic query", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchStays("synthetic-token", {
@@ -62,7 +49,7 @@ describe("search stays (synthetic)", () => {
   });
 
   it("returns results with expected structure", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchStays("synthetic-token", {
@@ -87,7 +74,7 @@ describe("search stays (synthetic)", () => {
   });
 
   it("respects limit parameter", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchStays("synthetic-token", {
@@ -102,7 +89,7 @@ describe("search stays (synthetic)", () => {
   });
 
   it("includes synthetic flag in response", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     const resp = await client.searchStays("synthetic-token", {
@@ -116,7 +103,7 @@ describe("search stays (synthetic)", () => {
   });
 
   it("rejects unauthorized requests", async ({ skip }) => {
-    if (!available) skip();
+    if (!isAvailable()) skip();
     const client = createClient();
 
     try {

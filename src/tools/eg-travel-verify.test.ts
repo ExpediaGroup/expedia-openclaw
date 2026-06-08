@@ -16,49 +16,32 @@ limitations under the License.
 
 import { describe, it, expect, vi } from "vitest";
 import { createVerifyTool } from "./eg-travel-verify.js";
-import type { PluginConfig } from "../types.js";
+import { TEST_CONFIG, mockFetchJson } from "./tool-test-helpers.js";
 
-vi.mock("../credential-store.js", () => ({
-  writeCredential: vi.fn(),
-}));
-
-const config: PluginConfig = {
-  adapter_url: "http://localhost:19999",
-  default_pos_country: "US",
-  request_timeout_ms: 5000,
-  synthetic_mode: true,
-};
-
-function mockFetchJson(body: unknown, status = 200): typeof globalThis.fetch {
-  return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(body),
-  });
-}
+vi.mock("../credential-store.js");
 
 describe("eg_travel_verify tool", () => {
   it("exposes correct metadata", () => {
-    const tool = createVerifyTool(config);
+    const tool = createVerifyTool(TEST_CONFIG);
     expect(tool.name).toBe("eg_travel_verify");
     expect(tool.label).toBe("EG Travel Verify");
     expect(tool.description).toContain("verification code");
   });
 
   it("rejects an input that isn't a valid email", async () => {
-    const tool = createVerifyTool(config);
+    const tool = createVerifyTool(TEST_CONFIG);
     const result = await tool.execute({ email: "bad", code: "123456" });
     expect(result.content[0].text).toContain("not a valid email address");
   });
 
   it("rejects code with wrong length", async () => {
-    const tool = createVerifyTool(config);
+    const tool = createVerifyTool(TEST_CONFIG);
     const result = await tool.execute({ email: "user@example.com", code: "12345" });
     expect(result.content[0].text).toContain("6 digits");
   });
 
   it("rejects code with non-digit characters", async () => {
-    const tool = createVerifyTool(config);
+    const tool = createVerifyTool(TEST_CONFIG);
     const result = await tool.execute({ email: "user@example.com", code: "12345a" });
     expect(result.content[0].text).toContain("6 digits");
   });
@@ -70,7 +53,7 @@ describe("eg_travel_verify tool", () => {
       token_kind: "bearer",
     });
 
-    const tool = createVerifyTool(config, fakeFetch);
+    const tool = createVerifyTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute({ email: "user@example.com", code: "123-456" });
 
     expect(result.content[0].text).not.toContain("6 digits");
@@ -88,7 +71,7 @@ describe("eg_travel_verify tool", () => {
       quota: { searches_per_hour: 100, searches_remaining: 99 },
     });
 
-    const tool = createVerifyTool(config, fakeFetch);
+    const tool = createVerifyTool(TEST_CONFIG, fakeFetch);
     const result = await tool.execute({ email: "user@example.com", code: "654321" });
 
     expect(result.content[0].text).toContain("Verification successful");

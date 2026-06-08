@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 import type { AdapterErrorEnvelope, ContactMethod } from "./types.js";
+import { toolTextResult, type ToolResult } from "./tool-result.js";
 
 export class AdapterError extends Error {
   code: string;
@@ -63,7 +64,7 @@ export function isAuthFailure(error: AdapterError): boolean {
     "token_invalid",
     "token_missing",
     "auth_failed",
-    "authentication_required"
+    "authentication_required",
   ];
   return AUTH_FAILURE_CODES.includes(code);
 }
@@ -73,15 +74,29 @@ export interface CachedContact {
   contact_method: ContactMethod;
 }
 
+export function catchAdapterError(
+  err: unknown,
+  adapterUrl: string,
+  cachedContact?: CachedContact,
+): ToolResult {
+  if (err instanceof AdapterError) {
+    return toolTextResult(formatErrorForModel(err, adapterUrl, cachedContact));
+  }
+  throw err;
+}
+
 export function formatErrorForModel(
   error: AdapterError,
   adapterUrl?: string,
   cachedContact?: CachedContact,
 ): string {
-  const rid = error.requestId ? ` (request_id: ${error.requestId})` : "";
+  const rid: string =
+    error.requestId != null && error.requestId !== ""
+      ? ` (request_id: ${error.requestId})`
+      : "";
 
   if (isAuthFailure(error)) {
-    if (cachedContact) {
+    if (cachedContact != null) {
       return (
         `Your EG Travel access needs a fresh token (${error.code}). ` +
         `The cached contact is **${cachedContact.contact}** (${cachedContact.contact_method}). ` +

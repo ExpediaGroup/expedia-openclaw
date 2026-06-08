@@ -1,5 +1,5 @@
 {
-  "id": "expedia-openclaw",
+  "id": "expedia-travel-openclaw",
   "name": "Expedia Travel",
   "description": "Live hotel, resort, vacation rental, and flight search via Expedia",
   "skills": ["./skills"],

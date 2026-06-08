@@ -33,7 +33,8 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 
 function currentLevel(): LogLevel {
   const env = process.env.EG_TRAVEL_LOG_LEVEL?.toLowerCase();
-  if (env && env in LEVEL_PRIORITY) return env as LogLevel;
+  if (env != null && env !== "" && env in LEVEL_PRIORITY)
+    return env as LogLevel;
   return "info";
 }
 
@@ -42,11 +43,23 @@ function emit(entry: LogEntry): void {
   try {
     out.write(JSON.stringify(entry) + "\n");
   } catch {
-    out.write(JSON.stringify({ level: entry.level, msg: entry.msg, plugin: entry.plugin, ts: entry.ts, serialize_error: true }) + "\n");
+    out.write(
+      JSON.stringify({
+        level: entry.level,
+        msg: entry.msg,
+        plugin: entry.plugin,
+        ts: entry.ts,
+        serialize_error: true,
+      }) + "\n",
+    );
   }
 }
 
-function log(level: LogLevel, msg: string, fields?: Record<string, unknown>): void {
+function log(
+  level: LogLevel,
+  msg: string,
+  fields?: Record<string, unknown>,
+): void {
   if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[currentLevel()]) return;
   emit({
     ...fields,
@@ -58,8 +71,12 @@ function log(level: LogLevel, msg: string, fields?: Record<string, unknown>): vo
 }
 
 export const logger = {
-  debug: (msg: string, fields?: Record<string, unknown>) => log("debug", msg, fields),
-  info: (msg: string, fields?: Record<string, unknown>) => log("info", msg, fields),
-  warn: (msg: string, fields?: Record<string, unknown>) => log("warn", msg, fields),
-  error: (msg: string, fields?: Record<string, unknown>) => log("error", msg, fields),
+  debug: (msg: string, fields?: Record<string, unknown>) =>
+    log("debug", msg, fields),
+  info: (msg: string, fields?: Record<string, unknown>) =>
+    log("info", msg, fields),
+  warn: (msg: string, fields?: Record<string, unknown>) =>
+    log("warn", msg, fields),
+  error: (msg: string, fields?: Record<string, unknown>) =>
+    log("error", msg, fields),
 };

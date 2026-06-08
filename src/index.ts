@@ -15,36 +15,27 @@ limitations under the License.
 */
 
 import { definePluginEntry } from "openclaw/plugin-sdk/core";
+import type { AnyAgentTool } from "openclaw/plugin-sdk/core";
 import { readPluginConfig } from "./plugin-config.js";
 import { createSearchStaysTool } from "./tools/search-stays.js";
 import { createSearchFlightsTool } from "./tools/search-flights.js";
 import { createSignupTool } from "./tools/eg-travel-signup.js";
 import { createVerifyTool } from "./tools/eg-travel-verify.js";
 import { createTenantStatusTool } from "./tools/eg-tenant-status.js";
+import type { InternalTool } from "./types.js";
 
 // The host expects tool objects shaped like `AgentTool`: `parameters` (not
 // `inputSchema`), `execute(toolCallId, params, signal?, onUpdate?)` (not
 // `execute(input)`). Our internal factories return a simpler shape so the
 // individual tool files stay easy to test in isolation; this thin adapter
 // translates between the two without touching them.
-interface InternalTool {
-  name: string;
-  label: string;
-  description: string;
-  inputSchema: unknown;
-  execute: (input: unknown) => Promise<{
-    content: { type: "text"; text: string }[];
-    details?: unknown;
-  }>;
-}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function adaptTool(tool: InternalTool): any {
+function adaptTool(tool: InternalTool): AnyAgentTool {
   return {
     name: tool.name,
     label: tool.label,
     description: tool.description,
-    parameters: tool.inputSchema,
+    parameters: tool.inputSchema as object,
     execute: async (_toolCallId: string, params: unknown) => {
       const result = await tool.execute(params);
       return { content: result.content, details: result.details };
@@ -53,7 +44,7 @@ function adaptTool(tool: InternalTool): any {
 }
 
 export default definePluginEntry({
-  id: "expedia-openclaw",
+  id: "expedia-travel-openclaw",
   name: "Expedia Travel",
   description:
     "Live hotel, resort, vacation rental, and flight search via the Expedia Travel Adapter",
@@ -63,7 +54,9 @@ export default definePluginEntry({
     api.registerTool(adaptTool(createSignupTool(config) as InternalTool));
     api.registerTool(adaptTool(createVerifyTool(config) as InternalTool));
     api.registerTool(adaptTool(createSearchStaysTool(config) as InternalTool));
-    api.registerTool(adaptTool(createSearchFlightsTool(config) as InternalTool));
+    api.registerTool(
+      adaptTool(createSearchFlightsTool(config) as InternalTool),
+    );
     api.registerTool(adaptTool(createTenantStatusTool(config) as InternalTool));
   },
 });

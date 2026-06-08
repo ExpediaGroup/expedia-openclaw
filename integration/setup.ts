@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { beforeAll } from "vitest";
 import { AdapterClient } from "../src/adapter-client.js";
 import type { PluginConfig } from "../src/types.js";
 
@@ -39,4 +40,21 @@ export async function adapterAvailable(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export function setupAvailabilityCheck(): { isAvailable: () => boolean } {
+  let available = false;
+  beforeAll(async () => {
+    available = await adapterAvailable();
+    if (!available) {
+      console.log(`Skipping integration tests — adapter not reachable at ${ADAPTER_URL}`);
+    }
+  });
+  return { isAvailable: () => available };
+}
+
+export function tomorrow(): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
 }
