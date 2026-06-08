@@ -34,7 +34,7 @@ jobs:
 
       - name: Prepare dist for publishing
         run: |
-          cp package.json README.md LICENSE openclaw.plugin.json dist/
+          cp package.json README.md LICENSE openclaw.plugin.json .releaserc.json dist/
           cp -r skills dist/
 
       - name: Release
