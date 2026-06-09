@@ -42,8 +42,13 @@
   "engines": {
     "node": ">=20"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ExpediaGroup/expedia-openclaw.git"
+  },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "openclaw": {
     "extensions": [
