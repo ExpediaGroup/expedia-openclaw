@@ -37,6 +37,7 @@ jobs:
           cp package.json README.md LICENSE openclaw.plugin.json .releaserc.json dist/
           cp -r skills dist/
           cp -r scripts dist/
+          node -e "const p=require('./dist/package.json'); delete p.scripts.prepublishOnly; delete p.scripts.prebuild; require('fs').writeFileSync('./dist/package.json', JSON.stringify(p,null,2)+'\n')"
 
       - name: Release
         id: semantic
