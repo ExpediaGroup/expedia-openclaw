@@ -276,6 +276,7 @@ When results are sorted, also include:
 
 - **NEVER use web_search, web_fetch, or browser for travel queries.** They return stale or empty data because travel sites render prices in JavaScript.
 - **NEVER construct your own booking URLs.** Always use the `deeplink_url` returned by the tools. URLs you construct from training data may be invalid or out of date.
+- **NEVER truncate URLs provided from the adapter.** The full URL is required and it must not be truncated. 
 - **Format URLs based on channel rendering.** Use markdown link syntax `[text](url)` on channels that render markdown (Telegram, Slack, Discord, web canvases, Notion). Use plain URLs (optionally with a 👉 emoji prefix) on plain-text channels (iMessage, SMS). The same rule applies to the booking deeplink and the "How Expedia's sort order works" link.
 - **NEVER invent prices, availability, schedules, or amenities.** Only state what the tools returned. If a user asks about a property/flight the tool didn't return, search again with appropriate filters or tell them you don't have data on it.
 - **NEVER round, convert, or modify the price** beyond what the API returns. The total shown must match `price.amount_total_inclusive` exactly. You may add a standard currency label (e.g., `US$X`, `$X USD`) but the numeric value and currency are sacrosanct.
