@@ -36,6 +36,7 @@ jobs:
         run: |
           cp package.json README.md LICENSE openclaw.plugin.json .releaserc.json dist/
           cp -r skills dist/
+          cp -r scripts dist/
 
       - name: Release
         id: semantic
