@@ -32,27 +32,35 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Prepare dist for publishing
+      # Stage a publish directory that mirrors the repo layout so that
+      # package.json's `main: dist/index.js`, `files: ["dist", ...]`, and
+      # openclaw `extensions: ["./dist/index.js"]` all resolve correctly
+      # inside the published package. Publishing from dist/ itself shipped
+      # a package with no JS (files: ["dist"] matched nothing) — see v1.0.3.
+      - name: Stage package for publishing
         run: |
-          cp package.json README.md LICENSE openclaw.plugin.json .releaserc.json dist/
-          cp -r skills dist/
-          cp -r scripts dist/
-          node -e "const p=require('./dist/package.json'); delete p.scripts.prepublishOnly; delete p.scripts.prebuild; require('fs').writeFileSync('./dist/package.json', JSON.stringify(p,null,2)+'\n')"
+          mkdir -p pack
+          cp package.json README.md LICENSE openclaw.plugin.json .releaserc.json pack/
+          cp -r skills pack/
+          cp -r dist pack/dist
+          # prepublishOnly/prebuild assume full repo layout (src/, tests);
+          # CI already built and tested above, so strip them.
+          node -e "const p=require('./pack/package.json'); delete p.scripts.prepublishOnly; delete p.scripts.prebuild; require('fs').writeFileSync('./pack/package.json', JSON.stringify(p,null,2)+'\n')"
 
       - name: Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v6
         with:
-          working_directory: dist
+          working_directory: pack
           extra_plugins: |
             conventional-changelog-conventionalcommits@9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update dist/package.json version
+      - name: Update pack/package.json version
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          cd dist
+          cd pack
           node -e "const p=require('./package.json'); p.version='${{ steps.semantic.outputs.new_release_version }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n')"
 
       - name: Install ClawHub CLI
@@ -63,7 +71,7 @@ jobs:
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
           clawhub login --token "$CLAWHUB_TOKEN" --no-browser
-          clawhub package publish dist/ \
+          clawhub package publish pack/ \
             --family code-plugin \
             --version "${{ steps.semantic.outputs.new_release_version }}" \
             --source-repo "${{ github.repository }}" \
