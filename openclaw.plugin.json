@@ -2,6 +2,7 @@
   "id": "expedia-openclaw",
   "name": "Expedia Travel",
   "description": "Live hotel, resort, vacation rental, and flight search via Expedia",
+  "icon": "https://avatars.githubusercontent.com/u/38541875?v=4",
   "skills": ["./skills"],
   "contracts": {
     "tools": [
