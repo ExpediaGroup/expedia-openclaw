@@ -33,7 +33,7 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/javascript@v8
+        uses: oxsecurity/megalinter/flavors/javascript@v10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false # Only validate changed files in PR
