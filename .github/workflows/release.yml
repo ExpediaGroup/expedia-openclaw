@@ -49,7 +49,7 @@ jobs:
 
       - name: Release
         id: semantic
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@v7.1.2
         with:
           working_directory: pack
           extra_plugins: |
